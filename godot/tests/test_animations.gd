@@ -38,3 +38,10 @@ func test_every_mechanics_id_is_known() -> void:
 func test_one_shot_clips_have_length() -> void:
 	for clip in ["kneel_down", "stand_up", "place_jack", "pull_wheel", "fit_wheel", "release_jack", "pick_up", "shrug"]:
 		assert_gt(rig.clip_length(clip), 0.0, clip)
+
+
+func test_clip_spec_parsing() -> void:
+	assert_eq(CharacterRig.parse_clip_spec("walk"), ["walk", 1.0])
+	assert_eq(CharacterRig.parse_clip_spec("kneeling_down/mixamo_com@-1"), ["kneeling_down/mixamo_com", -1.0])
+	assert_eq(CharacterRig.parse_clip_spec("Standard Walk@1.25"), ["Standard Walk", 1.25])
+	assert_eq(CharacterRig.parse_clip_spec("odd@name"), ["odd@name", 1.0])

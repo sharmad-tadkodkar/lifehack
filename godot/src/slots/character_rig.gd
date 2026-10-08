@@ -38,9 +38,22 @@ func _load_config() -> void:
 	_blend_locomotion = Config.v("animation", "blend", "locomotion")
 
 
+## The model's clip for a logical name. Map values may carry a speed: "Kneeling Down@-1" plays
+## that clip backwards (handy for stand_up), "Standard Walk@1.2" a little faster.
 func clip_for(logical: String) -> String:
-	var map := Config.section("animation", "clips." + slot)
-	return str(map.get(logical, logical))
+	return parse_clip_spec(_spec_for(logical))[0]
+
+
+func _spec_for(logical: String) -> String:
+	return str(Config.section("animation", "clips." + slot).get(logical, logical))
+
+
+## "Clip@speed" -> [clip, speed]
+static func parse_clip_spec(spec: String) -> Array:
+	var at := spec.rfind("@")
+	if at > 0 and spec.substr(at + 1).is_valid_float():
+		return [spec.substr(0, at), spec.substr(at + 1).to_float()]
+	return [spec, 1.0]
 
 
 func has_clip(logical: String) -> bool:
@@ -50,13 +63,15 @@ func has_clip(logical: String) -> bool:
 func play(logical: String, blend := -1.0, speed := 1.0) -> void:
 	if anim == null:
 		return
-	var clip := clip_for(logical)
+	var spec := parse_clip_spec(_spec_for(logical))
+	var clip: String = spec[0]
 	if not anim.has_animation(clip):
 		if not _missing_reported.has(clip):
 			_missing_reported[clip] = true
 			push_error("[slot %s] no clip '%s' for '%s' (animation.cfg [clips.%s])" % [slot, clip, logical, slot])
 		return
-	anim.play(clip, _blend_default if blend < 0.0 else blend, speed)
+	var rate: float = speed * float(spec[1])
+	anim.play(clip, _blend_default if blend < 0.0 else blend, rate, rate < 0.0)
 	anim.speed_scale = 1.0
 	current_clip = logical
 
@@ -69,8 +84,11 @@ func play_and_wait(logical: String, blend := -1.0, speed := 1.0) -> void:
 
 
 func clip_length(logical: String) -> float:
-	var clip := clip_for(logical)
-	return anim.get_animation(clip).length if anim and anim.has_animation(clip) else 0.0
+	var spec := parse_clip_spec(_spec_for(logical))
+	var clip: String = spec[0]
+	if anim == null or not anim.has_animation(clip):
+		return 0.0
+	return anim.get_animation(clip).length / maxf(absf(spec[1]), 0.01)
 
 
 ## Picks idle / walk / jog for a ground speed and scales playback so feet don't slide.

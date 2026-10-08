@@ -56,7 +56,9 @@ Tests use GUT (vendored in `godot/addons/gut`, do not edit). Test files are `god
 `tests/procedure_helpers.gd` holds shared helpers. The procedure tests (`test_procedure_data`,
 `test_step_order`, `test_star_pattern`, `test_inventory`) touch only `src/core/` — no scene, no rendering.
 `test_step_order` includes an exhaustive check that only the real order of all 5040 orderings completes.
-`test_procedure_flow` plays the whole procedure through the real menus/controller/visuals.
+`test_procedure_flow` plays the whole procedure through the real menus/controller/visuals (and autoplay)
+at 8x `Engine.time_scale`; `test_animations` / `test_npcs` check every clip the game asks for exists on the
+current character models, so they double as the acceptance test after swapping in real assets.
 
 ### Structure
 ```
@@ -85,11 +87,16 @@ godot/
     props/car.tscn                 car slot (CarRig): Chassis (tilts when jacked) with Model, hub, jack point;
                                    Spots/CornerSpot (wheel + jack_point) and Spots/TrunkSpot
     props/tool_cart.tscn           tool cart slot + ToolCartSpot
-    props/{lug_wrench,jack,wheel,lug_nut}.tscn   item slots (Grip marker = where the hand holds it)
+    props/{lug_wrench,jack,wheel,lug_nut,phone}.tscn   item slots (Grip marker = where the hand holds it)
     placeholders/placeholder_*.tscn  stand-in models, replaced by real assets later (see godot/ASSETS.md)
   tests/             GUT tests
   addons/gut/        vendored GUT 9.7.1
+  ASSETS.md          what real assets to get (sources, formats, required nodes/pivots, Mixamo clips) and how
+                     to plug them in; CREDITS.md lists third-party licences
 ```
+
+Config files: `graphics` (window/AA), `lighting`, `camera`, `player`, `animation` (clip maps + tween
+timings), `npc`, `ui`, `input`, `assets` (model slots), `game` (which procedure JSON).
 
 ### Conventions
 - No magic numbers in scripts: add a key to the right `config/*.cfg` and read it via `Config`.
@@ -101,7 +108,7 @@ godot/
 - Code never references a placeholder directly: slots (`AssetSlot`) load `assets.cfg [slot] model` or
   keep their `Model` child, and parts are found by the node names configured there.
 - Characters play LOGICAL clip names (`rig.play("pump_jack")`); `animation.cfg [clips.<slot>]` maps them to
-  the model's clip names. Placeholder clips are generated: edit `tools/build_placeholder_anims.gd`, then
+  the model's clip names (`"library/clip"`, optional `@speed`, negative = reversed). Placeholder clips are generated: edit `tools/build_placeholder_anims.gd`, then
   `godot --headless --path godot -s res://tools/build_placeholder_anims.gd`.
 - Fixed camera shots are Camera3D nodes used as markers (CameraDirector copies transform + FOV).
 - Game logic lives in `src/core` and never touches nodes. The world reads the model; `WorkBayVisuals.apply()`
