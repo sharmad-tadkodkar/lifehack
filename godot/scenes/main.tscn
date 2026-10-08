@@ -11,7 +11,8 @@
 [ext_resource type="PackedScene" path="res://scenes/props/wheel.tscn" id="9_wheel"]
 [ext_resource type="Script" path="res://src/game/work_bay_visuals.gd" id="10_work_bay_visuals"]
 [ext_resource type="Script" path="res://src/game/procedure_controller.gd" id="11_procedure_controller"]
-[ext_resource type="Script" path="res://src/ui/hud.gd" id="12_hud"]
+[ext_resource type="Script" path="res://src/game/action_player.gd" id="12_action_player"]
+[ext_resource type="Script" path="res://src/ui/hud.gd" id="13_hud"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
@@ -26,8 +27,9 @@ rotation = Vector3(0, 1.5708, 0)
 [node name="ToolCart" parent="WorkBay" instance=ExtResource("6_tool_cart")]
 position = Vector3(-4.3, 0, 1)
 
-[node name="Items" type="Node3D" parent="WorkBay" node_paths=PackedStringArray("car", "player", "lug_wrench", "jack", "spare")]
+[node name="Items" type="Node3D" parent="WorkBay" node_paths=PackedStringArray("car", "player", "lug_wrench", "jack", "spare", "action_player")]
 script = ExtResource("10_work_bay_visuals")
+action_player = NodePath("../../ActionPlayer")
 car = NodePath("../Car")
 player = NodePath("../../Player")
 lug_wrench = NodePath("LugWrench")
@@ -59,15 +61,21 @@ target = NodePath("../Player")
 [node name="Camera3D" type="Camera3D" parent="CameraDirector"]
 current = true
 
-[node name="ProcedureController" type="Node" parent="." node_paths=PackedStringArray("player", "director", "visuals", "hud")]
+[node name="ProcedureController" type="Node" parent="." node_paths=PackedStringArray("player", "director", "visuals", "hud", "outro_shot")]
 script = ExtResource("11_procedure_controller")
 player = NodePath("../Player")
 director = NodePath("../CameraDirector")
 visuals = NodePath("../WorkBay/Items")
 hud = NodePath("../Hud")
+outro_shot = NodePath("../Shots/Outro")
+
+[node name="ActionPlayer" type="Node" parent="." node_paths=PackedStringArray("visuals", "player")]
+script = ExtResource("12_action_player")
+visuals = NodePath("../WorkBay/Items")
+player = NodePath("../Player")
 
 [node name="Hud" type="CanvasLayer" parent="."]
-script = ExtResource("12_hud")
+script = ExtResource("13_hud")
 
 [node name="Shots" type="Node3D" parent="."]
 
@@ -80,3 +88,8 @@ fov = 40
 position = Vector3(-7.4, 2.5, 8.4)
 rotation = Vector3(-0.159904, -0.632749, 0)
 fov = 46
+
+[node name="Outro" type="Camera3D" parent="Shots"]
+position = Vector3(-4.6, 0.55, 3.9)
+rotation = Vector3(0.0222265, -0.879853, 0)
+fov = 44

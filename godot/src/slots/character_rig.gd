@@ -61,6 +61,18 @@ func play(logical: String, blend := -1.0, speed := 1.0) -> void:
 	current_clip = logical
 
 
+## Plays a one-shot clip and waits for it to end (timed by the clip's length, so it works
+## the same for placeholder and real clips).
+func play_and_wait(logical: String, blend := -1.0, speed := 1.0) -> void:
+	play(logical, blend, speed)
+	await get_tree().create_timer(clip_length(logical) / maxf(speed, 0.01), false).timeout
+
+
+func clip_length(logical: String) -> float:
+	var clip := clip_for(logical)
+	return anim.get_animation(clip).length if anim and anim.has_animation(clip) else 0.0
+
+
 ## Picks idle / walk / jog for a ground speed and scales playback so feet don't slide.
 func set_locomotion(ground_speed: float) -> void:
 	if not locomotion_enabled or anim == null:

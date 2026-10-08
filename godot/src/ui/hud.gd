@@ -265,7 +265,7 @@ func _build_toast(root: Control) -> void:
 
 
 func _build_summary(root: Control) -> void:
-	_summary = _anchored_panel(root, Control.PRESET_CENTER, true)
+	_summary = _anchored_panel(root, Control.PRESET_CENTER_RIGHT, true)
 	_summary_body = VBoxContainer.new()
 	_summary_body.add_theme_constant_override("separation", 12)
 	_summary.add_child(_summary_body)

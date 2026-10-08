@@ -32,6 +32,8 @@ godot --path godot -- --campos=-2.6,0.9,3.2 --camlook=-1.2,0.4,0.8 --shot=...   
 godot --path godot -- --skip-intro --hold=move_forward,jog                              # hold input actions
 godot --path godot --write-movie $PWD/godot/captures/clip/f.png --fixed-fps 30 --quit-after 90 -- --skip-intro
 godot --path godot -- --skip-intro --steps=3 --menu=wheel --choose=1                    # jump into a procedure state
+godot --path godot -- --skip-intro --autoplay                                           # watch the full procedure
+godot --path godot --resolution 800x450 --write-movie $PWD/godot/captures/auto/f.png --fixed-fps 5 --quit-after 600 -- --skip-intro --autoplay
 ```
 `--steps=N` fast-forwards the first N real steps, `--menu=<location>` opens that spot's menu
 (wheel, jack_point, trunk, tool_cart), `--choose=a,b` picks menu rows. In zsh pass flags held in a
@@ -66,7 +68,8 @@ godot/
                      ProcedureModel (state machine), Inventory (one item in hand), StarPattern, StepResult
   src/autoload/      Config singleton: Config.v(file, section, key), Config.section(file, section)
   src/game/          main.gd (boot, graphics, debug flags), ProcedureController (model <-> world),
-                     InteractionSpot (Area3D + Stand_/Cam_/Rests markers), WorkBayVisuals (state -> props)
+                     InteractionSpot (Area3D + Stand_/Cam_/Approach/Rests markers), WorkBayVisuals (state -> props),
+                     ActionPlayer (per-`mechanics` sequences: character clips + prop tweens)
   src/ui/            Hud (built in code; styled from config/ui.cfg)
   src/environment/   LightingRig (applies lighting.cfg), LightStrip, HexGrid, shaders/
   src/player/        PlayerController (CharacterBody3D), CameraDirector (follow cam + shot blends + intro)
@@ -101,5 +104,8 @@ godot/
 - Fixed camera shots are Camera3D nodes used as markers (CameraDirector copies transform + FOV).
 - Game logic lives in `src/core` and never touches nodes. The world reads the model; `WorkBayVisuals.apply()`
   snaps every prop to the model state, and animations only play the transition before it.
+- Character animation = AnimationPlayer clips (by logical name); mechanical motion (nuts, wrench, jack, car
+  lift, wheel slide) = tweens in `ActionPlayer`, timed by `animation.cfg [mechanics]`. A step's JSON
+  `animations` list is consumed in order by its `mechanics` sequence; unknown mechanics ids just play the clips.
 - Adding/changing a step = edit the JSON; `ProcedureData` validation (and its test) catches bad references.
 - snake_case files and folders, PascalCase node names, typed GDScript.

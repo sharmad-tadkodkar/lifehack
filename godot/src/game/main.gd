@@ -9,7 +9,7 @@ extends Node
 ##   --steps=N           start with the first N procedure steps already done
 ##   --menu=<location>   open the action menu at that location (wheel, jack_point, trunk, tool_cart)
 ##   --choose=1,2        then pick these menu rows in turn
-##   --autoplay          the procedure plays itself (wired up in the animation milestone)
+##   --autoplay          the procedure plays itself, start to finish (the real order, from the JSON)
 
 const SCALING_MODES := {
 	"bilinear": Viewport.SCALING_3D_MODE_BILINEAR,
@@ -57,10 +57,13 @@ func _start() -> void:
 
 
 func _debug_procedure() -> void:
+	if debug_args.has("autoplay"):
+		procedure.autoplay()
+		return
 	if debug_args.has("steps"):
 		procedure.debug_fast_forward(int(debug_args["steps"]))
 	if debug_args.has("menu"):
-		procedure.debug_open(debug_args["menu"])
+		await procedure.debug_open(debug_args["menu"])
 	for pick in str(debug_args.get("choose", "")).split(",", false):
 		await procedure.choose(int(pick) - 1)
 

@@ -52,22 +52,25 @@ locations = PackedStringArray("wheel", "jack_point")
 position = Vector3(0, 1, 0)
 shape = SubResource("CylinderShape3D_2")
 
+[node name="Approach" type="Marker3D" parent="Spots/CornerSpot"]
+position = Vector3(-0.65, 0, -0.6)
+
 [node name="Stand_wheel" type="Marker3D" parent="Spots/CornerSpot"]
-position = Vector3(0.35, 0, 0)
-rotation = Vector3(0, -1.26, 0)
+position = Vector3(0.42, 0, -0.15)
+rotation = Vector3(0, -1.5708, 0)
 
 [node name="Stand_jack_point" type="Marker3D" parent="Spots/CornerSpot"]
 position = Vector3(-0.35, 0, 0.25)
 rotation = Vector3(0, -1.5708, 0)
 
 [node name="Cam_wheel" type="Camera3D" parent="Spots/CornerSpot"]
-position = Vector3(-0.75, 1, -1.6)
-rotation = Vector3(-0.253159, -2.31397, 0)
-fov = 50
+position = Vector3(-1.15, 1.3, -2.1)
+rotation = Vector3(-0.291328, -2.36824, 0)
+fov = 46
 
 [node name="Cam_jack_point" type="Camera3D" parent="Spots/CornerSpot"]
-position = Vector3(-0.95, 0.9, -1.5)
-rotation = Vector3(-0.209033, -2.35619, 0)
+position = Vector3(-1.55, 1.1, -1.9)
+rotation = Vector3(-0.231477, -2.35619, 0)
 fov = 52
 
 [node name="Rests" type="Node3D" parent="Spots/CornerSpot"]
@@ -104,6 +107,9 @@ locations = PackedStringArray("trunk")
 [node name="Shape" type="CollisionShape3D" parent="Spots/TrunkSpot"]
 position = Vector3(0, 1, 0)
 shape = SubResource("CylinderShape3D_3")
+
+[node name="Approach" type="Marker3D" parent="Spots/TrunkSpot"]
+position = Vector3(-1.8, 0, 0.05)
 
 [node name="Stand_trunk" type="Marker3D" parent="Spots/TrunkSpot"]
 position = Vector3(0, 0, -0.2)

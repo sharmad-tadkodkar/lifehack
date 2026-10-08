@@ -10,6 +10,7 @@ extends Node3D
 @export var lug_wrench: ItemRig
 @export var jack: JackRig
 @export var spare: ItemRig
+@export var action_player: ActionPlayer
 
 var model: ProcedureModel
 var _spots: Array[InteractionSpot] = []
@@ -37,11 +38,13 @@ func apply() -> void:
 	_update_pattern_labels()
 
 
-## Plays out a StepResult. For now everything snaps; the animation milestone replaces this
-## with character clips and tweens that end in the same state.
-func present(_result: StepResult) -> void:
-	apply()
-	await get_tree().process_frame
+## Plays out a StepResult (ActionPlayer if there is one, otherwise everything snaps).
+func present(result: StepResult) -> void:
+	if action_player:
+		await action_player.play(result)
+	else:
+		apply()
+		await get_tree().process_frame
 
 
 func item_node(item_id: String) -> Node3D:
@@ -110,14 +113,19 @@ func spot_for(location: String) -> InteractionSpot:
 	return null
 
 
+## Where nut `i` lies in the pile once it is off the wheel.
+func nut_pile_transform(i: int) -> Transform3D:
+	var pile := rest_marker("wheel", "nuts")
+	var offset := Vector3(0.035 * (i % 3), 0.0, 0.035 * floori(i / 3.0))
+	return pile.global_transform.translated_local(offset) if pile else car.hub.global_transform
+
+
 func _place_nuts(nut_state: String) -> void:
 	var backout := float(Config.v("animation", "mechanics", "nut_backout"))
-	var pile := rest_marker("wheel", "nuts")
 	for i in car.nuts.size():
 		var nut := car.nuts[i]
-		if nut_state == "removed" and pile:
-			var offset := Vector3(0.035 * (i % 3), 0.0, 0.035 * floori(i / 3.0))
-			_attach_global(nut, self, pile.global_transform.translated_local(offset))
+		if nut_state == "removed":
+			_attach_global(nut, self, nut_pile_transform(i))
 		else:
 			_attach(nut, car.hub, Transform3D(Basis.IDENTITY, car.nut_seat(i, backout if nut_state == "loose" else 0.0)))
 
@@ -126,6 +134,14 @@ func _update_pattern_labels() -> void:
 	var on := model.pattern_active
 	var done: Array[int] = model.pattern.tightened if model.pattern else ([] as Array[int])
 	car.show_nut_labels(on, done, Config.v("ui", "colors", "dim"), Config.v("ui", "colors", "accent"))
+
+
+func attach(node: Node3D, parent: Node3D, local: Transform3D) -> void:
+	_attach(node, parent, local)
+
+
+func attach_global(node: Node3D, xform: Transform3D) -> void:
+	_attach_global(node, self, xform)
 
 
 func _attach(node: Node3D, parent: Node3D, local: Transform3D) -> void:

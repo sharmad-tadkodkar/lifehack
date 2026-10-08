@@ -89,7 +89,7 @@ func attempt(step_id: String) -> StepResult:
 		pattern_active = true
 		var start := StepResult.success(StepResult.Kind.PATTERN_START, step_id,
 			data.message("pattern_start", {"count": data.nut_count}))
-		start.animations = [s.animations[0]]
+		start.animations = s.animations.duplicate()
 		start.mechanics = s.mechanics
 		return start
 	return _complete(s, StepResult.success(StepResult.Kind.STEP, step_id, str(s.success)))
@@ -111,8 +111,10 @@ func tighten_nut(index: int) -> StepResult:
 		_:
 			r = StepResult.failure(StepResult.Kind.NUT, pattern_step, "invalid", "")
 	r.nut = index
+	var s := data.step(pattern_step)
+	r.animations = s.animations.duplicate()
+	r.mechanics = s.mechanics
 	if r.ok and pattern.is_complete():
-		var s := data.step(pattern_step)
 		pattern_active = false
 		r.message = str(s.success)
 		_complete(s, r)

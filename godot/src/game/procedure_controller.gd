@@ -1,8 +1,9 @@
 class_name ProcedureController
 extends Node
 ## Bridges the pure ProcedureModel and the 3D world. Walking into an InteractionSpot shows a
-## prompt; E opens that spot's action menu (camera blends to the close-up); number keys choose;
-## the model judges the choice and the StepResult is shown (HUD) and played out (visuals).
+## prompt; E opens that spot's action menu (the player walks to the stand mark and the camera
+## blends to the close-up); number keys choose; the model judges the choice and the StepResult
+## is shown (HUD) and played out (WorkBayVisuals -> ActionPlayer).
 
 signal finished
 
@@ -10,12 +11,15 @@ signal finished
 @export var director: CameraDirector
 @export var visuals: WorkBayVisuals
 @export var hud: Hud
+## Camera shot for the end summary.
+@export var outro_shot: Camera3D
 
 var model: ProcedureModel
 var running := false
 var elapsed := 0.0
 var menu_open := false
 var busy := false
+var autoplaying := false
 
 var _nearby: Array[InteractionSpot] = []
 var _spot: InteractionSpot
@@ -51,7 +55,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed(&"interact"):
 			get_tree().reload_current_scene()
 		return
-	if not running or busy:
+	if not running or busy or autoplaying:
 		return
 	if menu_open:
 		for i in 9:
@@ -69,17 +73,22 @@ func open_menu(spot: InteractionSpot = null) -> void:
 	if spot:
 		_spot = spot
 	menu_open = true
+	busy = true
 	player.controls_enabled = false
 	hud.show_prompt("")
-	_stage(_spot.primary_location())
+	await _stage(_spot.primary_location())
+	busy = false
 	_refresh_menu()
 
 
 func close_menu() -> void:
-	menu_open = false
-	model.pause_pattern()
-	visuals.apply()
+	busy = true
 	hud.hide_menu()
+	model.pause_pattern()
+	await visuals.action_player.stand_if_kneeling()
+	visuals.apply()
+	menu_open = false
+	busy = false
 	director.release()
 	player.controls_enabled = true
 	if not _nearby.has(_spot):
@@ -92,32 +101,110 @@ func current_actions() -> Array[Dictionary]:
 	return _actions
 
 
+## Menu row `index` (0-based). During the star pattern the rows are the nuts.
 func choose(index: int) -> void:
 	if busy:
 		return
-	var result: StepResult
 	if model.pattern_active:
-		if index >= model.data.nut_count:
-			return
-		result = model.tighten_nut(index)
-	else:
-		if index >= _actions.size():
-			return
-		var action := _actions[index]
-		if action.location != _location:
-			_stage(action.location)
-		match action.kind:
-			"step":
-				result = model.attempt(action.id)
-			"take":
-				result = model.take(action.id, action.location)
-			"put":
-				result = model.put_down(action.location)
+		if index < model.data.nut_count:
+			await perform_nut(index)
+	elif index < _actions.size():
+		await perform(_actions[index])
+
+
+func perform(action: Dictionary) -> void:
+	if action.location != _location:
+		busy = true
+		await _stage(action.location)
+	var result: StepResult
+	match action.kind:
+		"step":
+			result = model.attempt(action.id)
+		"take":
+			result = model.take(action.id, action.location)
+		"put":
+			result = model.put_down(action.location)
 	await _present(result)
+
+
+func perform_nut(index: int) -> void:
+	await _present(model.tighten_nut(index))
+
+
+## Plays the real procedure from the data: fetch each step's tool, walk to the step's spot, do it.
+func autoplay() -> void:
+	autoplaying = true
+	for step_id in model.data.step_ids_in_order():
+		var s := model.data.step(step_id)
+		if s.tool != null and model.held_item() != s.tool:
+			var where := model.inventory.location_of(s.tool)
+			await _go_to(where)
+			await perform({"kind": "take", "id": s.tool, "location": where})
+		await _go_to(s.location)
+		await perform({"kind": "step", "id": step_id, "location": s.location})
+		while model.pattern_active:
+			await perform_nut(model.pattern.valid_next()[0])
+	autoplaying = false
+
+
+## Mistakes are explained straight away; successes are described once they have played out.
+func _present(result: StepResult) -> void:
+	busy = true
+	hud.hide_menu()
+	if not result.ok:
+		hud.toast(result)
+	await visuals.present(result)
+	if result.ok:
+		hud.toast(result)
+	hud.update_status(model, elapsed)
+	busy = false
 	if model.is_complete():
 		_finish()
 	elif menu_open:
 		_refresh_menu()
+
+
+func _finish() -> void:
+	running = false
+	menu_open = false
+	hud.hide_menu()
+	hud.show_summary(model, elapsed)
+	if outro_shot:
+		director.blend_to(outro_shot, Config.v("camera", "intro", "handoff"))
+	else:
+		director.release()
+	finished.emit()
+
+
+## Walk to the stand mark for `location` within the current spot and frame its close-up.
+func _stage(location: String) -> void:
+	_location = location
+	director.blend_to(_spot.cam_for(location))
+	var stand := _spot.stand_for(location)
+	if stand.global_position.distance_to(player.global_position) > 0.08:
+		await player.walk_to(stand)
+	else:
+		player.snap_to(stand)
+
+
+## Autoplay: walk from wherever the player is to the spot covering `location`, going around the
+## car via the spots' Approach markers, and open its menu.
+func _go_to(location: String) -> void:
+	var target := visuals.spot_for(location)
+	if menu_open and _spot == target:
+		if _location != location:
+			await _stage(location)
+		return
+	if menu_open:
+		await close_menu()
+	var leaving := _spot
+	if leaving and leaving != target and leaving.has_node(^"Approach"):
+		await player.walk_to(leaving.get_node(^"Approach"))
+	if target.has_node(^"Approach"):
+		await player.walk_to(target.get_node(^"Approach"))
+	await open_menu(target)
+	if _location != location:
+		await _stage(location)
 
 
 ## Debug / look-dev: perform the first `count` steps of the real procedure instantly.
@@ -137,36 +224,12 @@ func debug_fast_forward(count: int) -> void:
 
 ## Debug / look-dev: open the menu of the spot covering `location`.
 func debug_open(location: String) -> void:
-	for spot: InteractionSpot in get_tree().get_nodes_in_group(&"interaction_spot"):
-		if spot.covers(location):
-			open_menu(spot)
-			if location != spot.primary_location():
-				_stage(location)
-			return
-
-
-func _present(result: StepResult) -> void:
-	busy = true
-	hud.hide_menu()
-	hud.toast(result)
-	await visuals.present(result)
-	hud.update_status(model, elapsed)
-	busy = false
-
-
-func _finish() -> void:
-	running = false
-	menu_open = false
-	hud.hide_menu()
-	hud.show_summary(model, elapsed)
-	director.release()
-	finished.emit()
-
-
-func _stage(location: String) -> void:
-	_location = location
-	player.snap_to(_spot.stand_for(location))
-	director.blend_to(_spot.cam_for(location))
+	var spot := visuals.spot_for(location)
+	if spot == null:
+		return
+	await open_menu(spot)
+	if location != spot.primary_location():
+		await _stage(location)
 
 
 func _refresh_menu() -> void:
