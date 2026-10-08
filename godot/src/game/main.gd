@@ -2,6 +2,7 @@ extends Node
 ## Boot: applies graphics.cfg and handles debug flags passed after `--`:
 ##   --shot=<png path>   save a viewport screenshot after --frames=N (default 120), then quit
 ##   --size=WxH          force a windowed size (handy for consistent captures)
+##   --campos=x,y,z --camlook=x,y,z   move the overview camera (look-dev captures)
 ##   --autoplay          the procedure plays itself (wired up in the animation milestone)
 
 const SCALING_MODES := {
@@ -16,6 +17,7 @@ var debug_args: Dictionary = {}
 func _ready() -> void:
 	debug_args = _parse_user_args()
 	_apply_graphics()
+	_setup_overview_camera()
 	if debug_args.has("shot"):
 		_capture_after(int(debug_args.get("frames", "120")), debug_args["shot"])
 
@@ -58,11 +60,26 @@ func _apply_graphics() -> void:
 			DisplayServer.window_set_size(window.get("windowed_size", Vector2i(1600, 900)))
 
 
+func _setup_overview_camera() -> void:
+	var cam := get_node_or_null(^"OverviewCamera") as Camera3D
+	if cam == null:
+		return
+	cam.fov = Config.v("camera", "overview", "fov")
+	if debug_args.has("campos"):
+		cam.global_position = _parse_vec3(debug_args["campos"])
+		cam.look_at(_parse_vec3(debug_args.get("camlook", "0,0.6,0")))
+
+
+func _parse_vec3(text: String) -> Vector3:
+	var p := text.split(",")
+	return Vector3(float(p[0]), float(p[1]), float(p[2]))
+
+
 func _capture_after(frames: int, path: String) -> void:
 	for i in frames:
 		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var image := get_viewport().get_texture().get_image()
 	var err := image.save_png(path)
-	print("[main] screenshot %s -> %s" % [error_string(err), path])
+	print("[main] screenshot %s -> %s (%d fps)" % [error_string(err), path, Engine.get_frames_per_second()])
 	get_tree().quit()

@@ -1,6 +1,20 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://src/game/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/environment/garage.tscn" id="2_garage"]
+[ext_resource type="PackedScene" path="res://scenes/props/car.tscn" id="3_car"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
+
+[node name="Garage" parent="." instance=ExtResource("2_garage")]
+
+[node name="WorkBay" type="Node3D" parent="."]
+
+[node name="Car" parent="WorkBay" instance=ExtResource("3_car")]
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="OverviewCamera" type="Camera3D" parent="."]
+position = Vector3(-5.2, 1.7, 6.2)
+rotation = Vector3(-0.129, -0.639, 0)
+current = true

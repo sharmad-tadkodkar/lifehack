@@ -56,6 +56,10 @@ func section(file: String, sect: String) -> Dictionary:
 	return out
 
 
+func sections(file: String) -> PackedStringArray:
+	return _files[file].get_sections() if _files.has(file) else PackedStringArray()
+
+
 func file_names() -> Array[String]:
 	return _files.keys()
 
