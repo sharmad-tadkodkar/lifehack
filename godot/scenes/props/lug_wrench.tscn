@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/slots/item_rig.gd" id="1_item_rig"]
+[ext_resource type="PackedScene" path="res://scenes/placeholders/placeholder_lug_wrench.tscn" id="2_placeholder_lug_wrench"]
+
+[node name="LugWrench" type="Node3D"]
+script = ExtResource("1_item_rig")
+slot = "lug_wrench"
+
+[node name="Model" parent="." instance=ExtResource("2_placeholder_lug_wrench")]
+
+[node name="Grip" type="Marker3D" parent="."]
+position = Vector3(0.27, 0, 0.3)
+rotation = Vector3(0, 0, 1.5708)

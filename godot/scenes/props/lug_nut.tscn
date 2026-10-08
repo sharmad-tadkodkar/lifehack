@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/slots/asset_slot.gd" id="1_asset_slot"]
+[ext_resource type="PackedScene" path="res://scenes/placeholders/placeholder_lug_nut.tscn" id="2_placeholder_lug_nut"]
+
+[node name="LugNut" type="Node3D"]
+script = ExtResource("1_asset_slot")
+slot = "lug_nut"
+
+[node name="Model" parent="." instance=ExtResource("2_placeholder_lug_nut")]

@@ -5,6 +5,13 @@
 [ext_resource type="PackedScene" path="res://scenes/props/car.tscn" id="3_car"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="4_player"]
 [ext_resource type="Script" path="res://src/player/camera_director.gd" id="5_camera_director"]
+[ext_resource type="PackedScene" path="res://scenes/props/tool_cart.tscn" id="6_tool_cart"]
+[ext_resource type="PackedScene" path="res://scenes/props/lug_wrench.tscn" id="7_lug_wrench"]
+[ext_resource type="PackedScene" path="res://scenes/props/jack.tscn" id="8_jack"]
+[ext_resource type="PackedScene" path="res://scenes/props/wheel.tscn" id="9_wheel"]
+[ext_resource type="Script" path="res://src/game/work_bay_visuals.gd" id="10_work_bay_visuals"]
+[ext_resource type="Script" path="res://src/game/procedure_controller.gd" id="11_procedure_controller"]
+[ext_resource type="Script" path="res://src/ui/hud.gd" id="12_hud"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
@@ -15,6 +22,23 @@ script = ExtResource("1_main")
 
 [node name="Car" parent="WorkBay" instance=ExtResource("3_car")]
 rotation = Vector3(0, 1.5708, 0)
+
+[node name="ToolCart" parent="WorkBay" instance=ExtResource("6_tool_cart")]
+position = Vector3(-4.3, 0, 1)
+
+[node name="Items" type="Node3D" parent="WorkBay" node_paths=PackedStringArray("car", "player", "lug_wrench", "jack", "spare")]
+script = ExtResource("10_work_bay_visuals")
+car = NodePath("../Car")
+player = NodePath("../../Player")
+lug_wrench = NodePath("LugWrench")
+jack = NodePath("Jack")
+spare = NodePath("Spare")
+
+[node name="LugWrench" parent="WorkBay/Items" instance=ExtResource("7_lug_wrench")]
+
+[node name="Jack" parent="WorkBay/Items" instance=ExtResource("8_jack")]
+
+[node name="Spare" parent="WorkBay/Items" instance=ExtResource("9_wheel")]
 
 [node name="Player" parent="." node_paths=PackedStringArray("camera_director") instance=ExtResource("4_player")]
 position = Vector3(-3.6, 0, 4.2)
@@ -34,6 +58,16 @@ target = NodePath("../Player")
 
 [node name="Camera3D" type="Camera3D" parent="CameraDirector"]
 current = true
+
+[node name="ProcedureController" type="Node" parent="." node_paths=PackedStringArray("player", "director", "visuals", "hud")]
+script = ExtResource("11_procedure_controller")
+player = NodePath("../Player")
+director = NodePath("../CameraDirector")
+visuals = NodePath("../WorkBay/Items")
+hud = NodePath("../Hud")
+
+[node name="Hud" type="CanvasLayer" parent="."]
+script = ExtResource("12_hud")
 
 [node name="Shots" type="Node3D" parent="."]
 

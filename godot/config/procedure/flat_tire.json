@@ -1,0 +1,181 @@
+{
+	"id": "flat_tire",
+	"title": "Change the flat tire",
+	"nut_count": 5,
+	"initial_state": {
+		"nuts": "tight",
+		"wheel": "flat",
+		"car_raised": false,
+		"jack_placed": false
+	},
+	"items": {
+		"lug_wrench": { "label": "Lug wrench", "starts_at": "tool_cart" },
+		"jack": { "label": "Floor jack", "starts_at": "tool_cart" },
+		"spare": { "label": "Spare wheel", "starts_at": "trunk" },
+		"flat": { "label": "Flat wheel", "starts_at": "installed" }
+	},
+	"locations": {
+		"wheel": "Front-left wheel",
+		"jack_point": "Jack point",
+		"trunk": "Trunk",
+		"tool_cart": "Tool cart"
+	},
+	"messages": {
+		"already_done": "Already done.",
+		"hands_full": "Your hands are full.",
+		"nothing_held": "You're not holding anything.",
+		"not_here": "That isn't here.",
+		"take_action": "Take the {item}",
+		"put_action": "Set down the {item}",
+		"took": "Picked up the {item}.",
+		"put": "Set down the {item}.",
+		"swapped": "Set down the {old}, picked up the {item}.",
+		"installed_item": "That's in use right now.",
+		"nut_done": "That one's already tight.",
+		"nut_wrong": "Not the neighbour. Go across, like drawing a star, so the wheel seats evenly.",
+		"nut_ok": "Nut {n} tight.",
+		"pattern_start": "Tighten the nuts one at a time with 1-{count}. Go across, in a star.",
+		"complete": "Car's back on the ground and the spare is torqued down. You're good to go."
+	},
+	"steps": [
+		{
+			"id": "loosen_nuts",
+			"order": 1,
+			"label": "Loosen the lug nuts",
+			"location": "wheel",
+			"tool": "lug_wrench",
+			"preconditions": { "nuts": "tight", "car_raised": false },
+			"effects": { "nuts": "loose" },
+			"animations": ["kneel_down", "wrench_loosen", "stand_up"],
+			"mechanics": "loosen_nuts",
+			"success": "Half a turn each. They're cracked loose while the tire still grips the floor.",
+			"wrong_tool": "Bare hands won't break these. You need the lug wrench.",
+			"fail": {
+				"car_raised": "The wheel just spins in the air. Crack the nuts loose while the tire's weight is still on the ground.",
+				"nuts": "They're already loose."
+			}
+		},
+		{
+			"id": "raise_car",
+			"order": 2,
+			"label": "Place the jack and raise the car",
+			"location": "jack_point",
+			"tool": "jack",
+			"consumes_tool": true,
+			"preconditions": { "car_raised": false, "nuts": "loose" },
+			"effects": { "car_raised": true, "jack_placed": true },
+			"animations": ["kneel_down", "place_jack", "pump_jack", "stand_up"],
+			"mechanics": "raise_car",
+			"success": "Saddle on the pinch weld, a few pumps, and the flat's off the ground.",
+			"wrong_tool": "You'll want the floor jack from the tool cart for that.",
+			"fail": {
+				"car_raised": "It's already up on the jack.",
+				"nuts": "Up it goes... and now the wheel will spin when you try the nuts. Loosen them first, while it's still on the ground."
+			}
+		},
+		{
+			"id": "remove_wheel",
+			"order": 3,
+			"label": "Remove the nuts and the wheel",
+			"location": "wheel",
+			"tool": "lug_wrench",
+			"preconditions": { "car_raised": true, "nuts": "loose" },
+			"effects": { "nuts": "removed", "wheel": "off" },
+			"item_moves": { "flat": "wheel" },
+			"animations": ["kneel_down", "wrench_unscrew", "pull_wheel", "stand_up"],
+			"mechanics": "remove_wheel",
+			"success": "Nuts off and in a safe pile, flat wheel off the hub.",
+			"wrong_tool": "Spin the loose nuts off with the lug wrench.",
+			"fail": {
+				"car_raised": "With the car's whole weight on that wheel it isn't going anywhere. Raise the car first.",
+				"nuts": "Those nuts are still torqued on. Loosen them before anything comes off."
+			}
+		},
+		{
+			"id": "fit_spare",
+			"order": 4,
+			"label": "Fit the spare wheel",
+			"location": "wheel",
+			"tool": "spare",
+			"consumes_tool": true,
+			"preconditions": { "wheel": "off", "car_raised": true },
+			"effects": { "wheel": "spare" },
+			"animations": ["kneel_down", "fit_wheel", "stand_up"],
+			"mechanics": "fit_spare",
+			"success": "Line up the holes and push it flush onto the hub.",
+			"wrong_tool": "You'll need the spare from the trunk for that.",
+			"fail": {
+				"wheel": "There's already a wheel on there. The flat one.",
+				"car_raised": "The hub's sitting at floor height. The spare won't slide on until the car is raised."
+			}
+		},
+		{
+			"id": "hand_tighten",
+			"order": 5,
+			"label": "Hand-tighten the nuts",
+			"location": "wheel",
+			"tool": null,
+			"preconditions": { "wheel": "spare", "nuts": "removed", "car_raised": true },
+			"effects": { "nuts": "hand_tight" },
+			"animations": ["kneel_down", "thread_nuts", "stand_up"],
+			"mechanics": "hand_tighten",
+			"success": "All five threaded on and snugged by hand, so the wheel sits straight.",
+			"wrong_tool": "",
+			"fail": {
+				"wheel": {
+					"flat": "Those nuts are holding the flat on. Swap the wheel first.",
+					"*": "There's no wheel on the hub to thread them onto. Fit the spare first."
+				},
+				"nuts": {
+					"tight": "They're already on, and very tight.",
+					"loose": "They're still on the old wheel.",
+					"*": "Already snug."
+				},
+				"car_raised": "With the car's weight on the wheel there's nothing to thread."
+			}
+		},
+		{
+			"id": "lower_car",
+			"order": 6,
+			"label": "Lower the car",
+			"location": "jack_point",
+			"tool": null,
+			"preconditions": { "car_raised": true, "nuts": "hand_tight" },
+			"effects": { "car_raised": false, "jack_placed": false },
+			"item_moves": { "jack": "jack_point" },
+			"animations": ["kneel_down", "release_jack", "stand_up"],
+			"mechanics": "lower_car",
+			"success": "Valve open, slow and steady, the tire takes the weight again.",
+			"wrong_tool": "",
+			"fail": {
+				"car_raised": "It's already on the ground.",
+				"nuts": {
+					"loose": "The flat's still on. Swap the wheel before you lower the car.",
+					"removed": "Lowering onto a wheel with no nuts? It would fold right off the hub. Thread them on first.",
+					"*": "Not yet. The wheel isn't secured."
+				}
+			}
+		},
+		{
+			"id": "torque_nuts",
+			"order": 7,
+			"label": "Fully tighten the nuts in a star pattern",
+			"location": "wheel",
+			"tool": "lug_wrench",
+			"preconditions": { "car_raised": false, "nuts": "hand_tight" },
+			"effects": { "nuts": "torqued" },
+			"pattern": { "type": "star" },
+			"animations": ["kneel_down", "wrench_tighten", "stand_up"],
+			"mechanics": "torque_nuts",
+			"success": "Every nut done, across the star. That wheel is seated dead straight.",
+			"wrong_tool": "Hands won't get them tight enough. Use the lug wrench.",
+			"fail": {
+				"car_raised": "Cranking on a raised wheel just spins it. Lower the car so the tire holds it still.",
+				"nuts": {
+					"tight": "These were never loosened.",
+					"*": "Thread the nuts on by hand first."
+				}
+			}
+		}
+	]
+}

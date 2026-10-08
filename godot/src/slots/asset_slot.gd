@@ -5,13 +5,15 @@ extends Node3D
 ## the slot's scale/offset/rotation_deg applied. Subclasses bind named parts in _bind().
 
 @export var slot := ""
+## Where the placeholder model sits inside this scene.
+@export var model_path := NodePath("Model")
 
 var model: Node3D
 var using_placeholder := true
 
 
 func _ready() -> void:
-	model = get_node_or_null(^"Model") as Node3D
+	model = get_node_or_null(model_path) as Node3D
 	var path := str(_setting("model", ""))
 	if path != "":
 		_swap_in(path)
@@ -28,12 +30,13 @@ func _swap_in(path: String) -> void:
 	real.position = _setting("offset", Vector3.ZERO)
 	var deg: Vector3 = _setting("rotation_deg", Vector3.ZERO)
 	real.rotation = Vector3(deg_to_rad(deg.x), deg_to_rad(deg.y), deg_to_rad(deg.z))
+	var parent: Node = model.get_parent() if model else self
 	if model:
-		remove_child(model)
+		parent.remove_child(model)
 		model.free()
 	real.name = "Model"
-	add_child(real)
-	move_child(real, 0)
+	parent.add_child(real)
+	parent.move_child(real, 0)
 	model = real
 	using_placeholder = false
 

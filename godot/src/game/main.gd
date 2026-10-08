@@ -6,6 +6,9 @@ extends Node
 ##   --skip-intro        start straight in the follow camera
 ##   --hold=a,b          hold these input actions from the start (e.g. move_forward,jog)
 ##   --campos=x,y,z --camlook=x,y,z   look-dev camera at a fixed spot
+##   --steps=N           start with the first N procedure steps already done
+##   --menu=<location>   open the action menu at that location (wheel, jack_point, trunk, tool_cart)
+##   --choose=1,2        then pick these menu rows in turn
 ##   --autoplay          the procedure plays itself (wired up in the animation milestone)
 
 const SCALING_MODES := {
@@ -18,6 +21,8 @@ var debug_args: Dictionary = {}
 
 @onready var player: PlayerController = $Player
 @onready var director: CameraDirector = $CameraDirector
+@onready var procedure: ProcedureController = $ProcedureController
+@onready var hud: Hud = $Hud
 
 
 func _ready() -> void:
@@ -41,10 +46,23 @@ func _start() -> void:
 	director.snap_to_target()
 	var skip: bool = debug_args.has("skip-intro") or not Config.v("camera", "intro", "enabled")
 	if not skip:
+		hud.show_title(true)
 		director.play_intro($Shots/IntroStart, $Shots/IntroEnd,
 			Config.v("camera", "intro", "duration"), Config.v("camera", "intro", "handoff"))
 		await director.intro_finished
+	hud.show_title(false)
 	player.controls_enabled = true
+	procedure.start()
+	_debug_procedure()
+
+
+func _debug_procedure() -> void:
+	if debug_args.has("steps"):
+		procedure.debug_fast_forward(int(debug_args["steps"]))
+	if debug_args.has("menu"):
+		procedure.debug_open(debug_args["menu"])
+	for pick in str(debug_args.get("choose", "")).split(",", false):
+		await procedure.choose(int(pick) - 1)
 
 
 func _unhandled_input(event: InputEvent) -> void:

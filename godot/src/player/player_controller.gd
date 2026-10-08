@@ -51,5 +51,16 @@ func face_direction(direction: Vector3, delta := 0.0) -> void:
 	rig.rotation.y = lerp_angle(rig.rotation.y, target, weight)
 
 
+## Puts the player on a stand marker, facing along the marker's -Z.
+func snap_to(marker: Node3D) -> void:
+	var spot := marker.global_position
+	spot.y = global_position.y
+	global_position = spot
+	velocity = Vector3.ZERO
+	reset_physics_interpolation()
+	face_direction(-marker.global_basis.z)
+	rig.set_locomotion(0.0)
+
+
 func facing_yaw() -> float:
 	return rig.global_rotation.y

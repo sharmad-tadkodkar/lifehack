@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/slots/jack_rig.gd" id="1_jack_rig"]
+[ext_resource type="PackedScene" path="res://scenes/placeholders/placeholder_jack.tscn" id="2_placeholder_jack"]
+
+[node name="Jack" type="Node3D"]
+script = ExtResource("1_jack_rig")
+slot = "jack"
+
+[node name="Model" parent="." instance=ExtResource("2_placeholder_jack")]
+
+[node name="Grip" type="Marker3D" parent="."]
+position = Vector3(0, 0.2, 0.36)
+rotation = Vector3(0, 0, 0)

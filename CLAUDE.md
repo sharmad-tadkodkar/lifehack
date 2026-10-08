@@ -31,8 +31,14 @@ godot --path godot -- --size=1600x900 --shot=$PWD/godot/captures/shot.png --fram
 godot --path godot -- --campos=-2.6,0.9,3.2 --camlook=-1.2,0.4,0.8 --shot=...           # look-dev camera
 godot --path godot -- --skip-intro --hold=move_forward,jog                              # hold input actions
 godot --path godot --write-movie $PWD/godot/captures/clip/f.png --fixed-fps 30 --quit-after 90 -- --skip-intro
+godot --path godot -- --skip-intro --steps=3 --menu=wheel --choose=1                    # jump into a procedure state
 ```
+`--steps=N` fast-forwards the first N real steps, `--menu=<location>` opens that spot's menu
+(wheel, jack_point, trunk, tool_cart), `--choose=a,b` picks menu rows. In zsh pass flags held in a
+variable with `${=args}` (zsh does not word-split `$args`).
+
 Controls: WASD move, Shift jog, mouse orbits (click to capture, Esc to release), any key skips the intro.
+At a spot: E opens the action menu, 1-9 choose, Q steps away. After finishing, E plays again.
 In-game: F5 reloads every `config/*.cfg` live (lighting, camera, timings), F3 toggles PLACEHOLDER tags.
 `godot/captures/` is git-ignored scratch space for screenshots.
 
@@ -44,23 +50,37 @@ ReflectionProbe itself (reproduces with a bare probe in an empty scene), not fro
 godot/run_tests.sh                          # whole suite, headless, non-zero exit on failure
 godot/run_tests.sh -gselect=test_config     # one script
 ```
-Tests use GUT (vendored in `godot/addons/gut`, do not edit). Test files are `godot/tests/test_*.gd`.
+Tests use GUT (vendored in `godot/addons/gut`, do not edit). Test files are `godot/tests/test_*.gd`;
+`tests/procedure_helpers.gd` holds shared helpers. The procedure tests (`test_procedure_data`,
+`test_step_order`, `test_star_pattern`, `test_inventory`) touch only `src/core/` — no scene, no rendering.
+`test_step_order` includes an exhaustive check that only the real order of all 5040 orderings completes.
+`test_procedure_flow` plays the whole procedure through the real menus/controller/visuals.
 
 ### Structure
 ```
 godot/
-  config/            ALL tunable values (*.cfg, ConfigFile syntax, `;` comments) + procedure JSON
+  config/            ALL tunable values (*.cfg, ConfigFile syntax, `;` comments)
+  config/procedure/flat_tire.json   THE procedure: state, items, locations, steps (preconditions,
+                     effects, tool, animations, mechanics, fail text per broken precondition)
+  src/core/          PURE LOGIC (RefCounted, no nodes): ProcedureData (load+validate JSON),
+                     ProcedureModel (state machine), Inventory (one item in hand), StarPattern, StepResult
   src/autoload/      Config singleton: Config.v(file, section, key), Config.section(file, section)
-  src/game/          main.gd (boot, graphics, debug flags)
+  src/game/          main.gd (boot, graphics, debug flags), ProcedureController (model <-> world),
+                     InteractionSpot (Area3D + Stand_/Cam_/Rests markers), WorkBayVisuals (state -> props)
+  src/ui/            Hud (built in code; styled from config/ui.cfg)
   src/environment/   LightingRig (applies lighting.cfg), LightStrip, HexGrid, shaders/
   src/player/        PlayerController (CharacterBody3D), CameraDirector (follow cam + shot blends + intro)
-  src/slots/         AssetSlot base + rigs (CarRig, CharacterRig): swap placeholders for real models via assets.cfg
+  src/slots/         AssetSlot base + rigs (CarRig, CharacterRig, ItemRig, JackRig): swap placeholders for
+                     real models via assets.cfg
   tools/             build_placeholder_anims.gd → regenerates placeholders/placeholder_character_anims.tres
   scenes/
     main.tscn                      Garage + WorkBay (hero car) + Player + CameraDirector + Shots (intro cams)
     characters/player.tscn         CharacterBody3D + CharacterRig slot
     environment/garage.tscn        shell, lights, probe, set dressing, car on the lift
-    props/car.tscn                 car slot wrapper (CarRig): Model + FlatWheelPivot/JackPoint/LiftPivot markers
+    props/car.tscn                 car slot (CarRig): Chassis (tilts when jacked) with Model, hub, jack point;
+                                   Spots/CornerSpot (wheel + jack_point) and Spots/TrunkSpot
+    props/tool_cart.tscn           tool cart slot + ToolCartSpot
+    props/{lug_wrench,jack,wheel,lug_nut}.tscn   item slots (Grip marker = where the hand holds it)
     placeholders/placeholder_*.tscn  stand-in models, replaced by real assets later (see godot/ASSETS.md)
   tests/             GUT tests
   addons/gut/        vendored GUT 9.7.1
@@ -79,4 +99,7 @@ godot/
   the model's clip names. Placeholder clips are generated: edit `tools/build_placeholder_anims.gd`, then
   `godot --headless --path godot -s res://tools/build_placeholder_anims.gd`.
 - Fixed camera shots are Camera3D nodes used as markers (CameraDirector copies transform + FOV).
+- Game logic lives in `src/core` and never touches nodes. The world reads the model; `WorkBayVisuals.apply()`
+  snaps every prop to the model state, and animations only play the transition before it.
+- Adding/changing a step = edit the JSON; `ProcedureData` validation (and its test) catches bad references.
 - snake_case files and folders, PascalCase node names, typed GDScript.

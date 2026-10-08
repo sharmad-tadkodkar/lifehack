@@ -1,0 +1,138 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/slots/placeholder_marker.gd" id="1_placeholder_marker"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.62, 0.05, 0.03, 1)
+metallic = 0.4
+roughness = 0.32
+clearcoat_enabled = true
+clearcoat = 0.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.55, 0.56, 0.58, 1)
+metallic = 1.0
+roughness = 0.28
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3"]
+albedo_color = Color(0.05, 0.05, 0.055, 1)
+metallic = 0.7
+roughness = 0.45
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
+albedo_color = Color(0.025, 0.025, 0.028, 1)
+roughness = 0.82
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5"]
+albedo_color = Color(0.85, 0.85, 0.87, 1)
+metallic = 1.0
+roughness = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6"]
+albedo_color = Color(0.95, 0.28, 0.1, 1)
+metallic = 0.3
+roughness = 0.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_7"]
+material = SubResource("StandardMaterial3D_1")
+size = Vector3(0.3, 0.12, 0.62)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_8"]
+material = SubResource("StandardMaterial3D_2")
+top_radius = 0.04
+bottom_radius = 0.04
+height = 0.16
+radial_segments = 16
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_9"]
+material = SubResource("StandardMaterial3D_3")
+top_radius = 0.04
+bottom_radius = 0.04
+height = 0.04
+radial_segments = 16
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_10"]
+material = SubResource("StandardMaterial3D_3")
+top_radius = 0.06
+bottom_radius = 0.06
+height = 0.04
+radial_segments = 16
+rings = 1
+
+[sub_resource type="BoxMesh" id="BoxMesh_11"]
+material = SubResource("StandardMaterial3D_1")
+size = Vector3(0.08, 0.06, 0.52)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_12"]
+material = SubResource("StandardMaterial3D_3")
+top_radius = 0.06
+bottom_radius = 0.06
+height = 0.035
+radial_segments = 20
+rings = 1
+
+[sub_resource type="BoxMesh" id="BoxMesh_13"]
+material = SubResource("StandardMaterial3D_2")
+size = Vector3(0.032, 0.032, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_14"]
+material = SubResource("StandardMaterial3D_4")
+size = Vector3(0.05, 0.05, 0.14)
+
+[node name="PlaceholderJack" type="Node3D"]
+script = ExtResource("1_placeholder_marker")
+label = "floor jack"
+label_height = 0.7
+
+[node name="Body" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.11, 0.36)
+mesh = SubResource("BoxMesh_7")
+
+[node name="Pump" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.22, 0.62)
+mesh = SubResource("CylinderMesh_8")
+
+[node name="Wheel1" type="MeshInstance3D" parent="."]
+position = Vector3(0.12, 0.04, 0.1)
+mesh = SubResource("CylinderMesh_9")
+rotation = Vector3(0, 0, 1.5708)
+
+[node name="Wheel2" type="MeshInstance3D" parent="."]
+position = Vector3(-0.12, 0.04, 0.1)
+mesh = SubResource("CylinderMesh_9")
+rotation = Vector3(0, 0, 1.5708)
+
+[node name="Wheel3" type="MeshInstance3D" parent="."]
+position = Vector3(0.17, 0.06, 0.6)
+mesh = SubResource("CylinderMesh_10")
+rotation = Vector3(0, 0, 1.5708)
+
+[node name="Wheel4" type="MeshInstance3D" parent="."]
+position = Vector3(-0.17, 0.06, 0.6)
+mesh = SubResource("CylinderMesh_10")
+rotation = Vector3(0, 0, 1.5708)
+
+[node name="LiftArm" type="Node3D" parent="."]
+position = Vector3(0, 0.14, 0.5)
+
+[node name="Arm" type="MeshInstance3D" parent="LiftArm"]
+position = Vector3(0, 0, -0.25)
+mesh = SubResource("BoxMesh_11")
+
+[node name="Saddle" type="MeshInstance3D" parent="LiftArm"]
+position = Vector3(0, 0.035, -0.5)
+mesh = SubResource("CylinderMesh_12")
+
+[node name="Handle" type="Node3D" parent="."]
+position = Vector3(0, 0.2, 0.66)
+rotation = Vector3(-0.65, 0, 0)
+
+[node name="Bar" type="MeshInstance3D" parent="Handle"]
+position = Vector3(0, 0, 0.5)
+mesh = SubResource("BoxMesh_13")
+
+[node name="Grip" type="MeshInstance3D" parent="Handle"]
+position = Vector3(0, 0, 0.94)
+mesh = SubResource("BoxMesh_14")
