@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/slots/phone_rig.gd" id="1_phone_rig"]
+[ext_resource type="PackedScene" path="res://scenes/placeholders/placeholder_phone.tscn" id="2_placeholder_phone"]
+
+[node name="Phone" type="Node3D"]
+script = ExtResource("1_phone_rig")
+slot = "phone"
+
+[node name="Model" parent="." instance=ExtResource("2_placeholder_phone")]
+
+[node name="Grip" type="Marker3D" parent="."]
+position = Vector3(0, -0.04, -0.01)
+rotation = Vector3(-1.2, 0, 0)
+
+[node name="ScreenGlow" type="OmniLight3D" parent="."]
+position = Vector3(0, 0.02, 0.08)
+shadow_enabled = false

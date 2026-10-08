@@ -141,7 +141,26 @@ func _work_clips() -> Dictionary:
 		"ankle_l.x": 0.3, "ankle_r.x": 0.3, "shoulder_r.x": 0.9, "elbow_r.x": 0.2, "shoulder_l.x": 0.4, "neck.x": 0.35}
 	var shrug := {"shoulder_l.z": -0.55, "shoulder_r.z": 0.55, "elbow_l.x": 1.35, "elbow_r.x": 1.35,
 		"hand_l.y": -0.8, "hand_r.y": 0.8, "neck.z": 0.18, "spine.x": 0.05}
-	return {
+	# NPCs: leaning back on the workbench on a phone, and a mechanic working under the lift.
+	var lean := {"hips.py": 0.92, "spine.x": 0.12, "neck.x": -0.5, "hip_l.x": 0.22, "hip_r.x": 0.22,
+		"knee_l.x": -0.12, "knee_r.x": -0.12, "ankle_l.x": -0.1, "ankle_r.x": -0.1,
+		"shoulder_r.x": 0.55, "elbow_r.x": 1.65, "shoulder_l.x": 0.35, "elbow_l.x": 1.45,
+		"shoulder_l.z": 0.05, "shoulder_r.z": -0.05}
+	var glance := lean.merged({"neck.x": -0.05, "neck.y": 0.55}, true)
+	var shifted := lean.merged({"hips.px": 0.04, "spine.z": -0.06, "hip_l.x": 0.3, "knee_l.x": -0.25}, true)
+	var overhead_a := {"shoulder_l.x": 2.55, "shoulder_r.x": 2.75, "elbow_l.x": 0.5, "elbow_r.x": 0.85, "neck.x": 0.55, "spine.x": 0.1}
+	var overhead_b := overhead_a.merged({"shoulder_l.x": 2.75, "shoulder_r.x": 2.55, "elbow_l.x": 0.85, "elbow_r.x": 0.5}, true)
+	var reach_shelf := {"shoulder_r.x": 1.55, "elbow_r.x": 0.25, "spine.x": -0.12, "neck.x": 0.15, "shoulder_l.x": 0.2}
+	var npc_clips := {
+		"lean_phone": _from_poses(3.0, true, [[0.0, lean], [1.5, lean.merged({"spine.x": 0.14, "hand_r.x": 0.08}, true)], [3.0, lean]]),
+		"lean_glance": _from_poses(2.6, false, [[0.0, lean], [0.6, glance], [1.9, glance], [2.6, lean]]),
+		"shift_weight": _from_poses(2.0, false, [[0.0, lean], [0.8, shifted], [2.0, lean]]),
+		"work_overhead": _from_poses(1.6, true, [[0.0, overhead_a], [0.8, overhead_b], [1.6, overhead_a]]),
+		"look_around": _from_poses(3.0, false, [[0.0, stand], [0.8, {"neck.y": 0.7, "spine.y": 0.15}],
+			[1.9, {"neck.y": -0.7, "spine.y": -0.15}], [3.0, stand]]),
+		"browse_shelf": _from_poses(2.6, false, [[0.0, stand], [0.8, reach_shelf], [1.6, reach_shelf.merged({"hand_r.y": 0.6}, true)], [2.6, stand]]),
+	}
+	var player_clips := {
 		"kneel_down": _from_poses(0.7, false, [[0.0, stand], [0.7, kneel]]),
 		"stand_up": _from_poses(0.7, false, [[0.0, kneel], [0.7, stand]]),
 		"kneel_idle": _from_poses(2.0, true, [[0.0, kneel], [1.0, kneel.merged({"spine.x": -0.27, "neck.y": 0.1}, true)], [2.0, kneel]]),
@@ -159,6 +178,8 @@ func _work_clips() -> Dictionary:
 		"pick_up": _from_poses(0.9, false, [[0.0, stand], [0.45, bend], [0.9, stand]]),
 		"shrug": _from_poses(1.1, false, [[0.0, stand], [0.3, shrug], [0.8, shrug], [1.1, stand]]),
 	}
+	player_clips.merge(npc_clips)
+	return player_clips
 
 
 func _locomotion_clips(walk_leg: Array, walk_knee: Array, walk_ankle: Array, walk_arm: Array, walk_elbow: Array,

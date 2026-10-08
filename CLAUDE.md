@@ -71,6 +71,7 @@ godot/
                      InteractionSpot (Area3D + Stand_/Cam_/Approach/Rests markers), WorkBayVisuals (state -> props),
                      ActionPlayer (per-`mechanics` sequences: character clips + prop tweens)
   src/ui/            Hud (built in code; styled from config/ui.cfg)
+  src/npc/           NpcIdleLoop (bench phone NPC), NpcPatrol (mechanic walking NpcWaypoint stops)
   src/environment/   LightingRig (applies lighting.cfg), LightStrip, HexGrid, shaders/
   src/player/        PlayerController (CharacterBody3D), CameraDirector (follow cam + shot blends + intro)
   src/slots/         AssetSlot base + rigs (CarRig, CharacterRig, ItemRig, JackRig): swap placeholders for
@@ -79,7 +80,8 @@ godot/
   scenes/
     main.tscn                      Garage + WorkBay (hero car) + Player + CameraDirector + Shots (intro cams)
     characters/player.tscn         CharacterBody3D + CharacterRig slot
-    environment/garage.tscn        shell, lights, probe, set dressing, car on the lift
+    characters/npc_phone.tscn, npc_mechanic.tscn   ambient NPCs (same CharacterRig slot, own clip maps)
+    environment/garage.tscn        shell, lights, probe, set dressing, car on the lift, NPCs + NpcWaypoints
     props/car.tscn                 car slot (CarRig): Chassis (tilts when jacked) with Model, hub, jack point;
                                    Spots/CornerSpot (wheel + jack_point) and Spots/TrunkSpot
     props/tool_cart.tscn           tool cart slot + ToolCartSpot

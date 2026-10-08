@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/npc/npc_patrol.gd" id="1_npc_patrol"]
+[ext_resource type="Script" path="res://src/slots/character_rig.gd" id="2_character_rig"]
+[ext_resource type="PackedScene" path="res://scenes/placeholders/placeholder_character.tscn" id="3_placeholder_character"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.3
+height = 1.8
+
+[node name="NpcMechanic" type="CharacterBody3D"]
+script = ExtResource("1_npc_patrol")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="CharacterRig" type="Node3D" parent="."]
+script = ExtResource("2_character_rig")
+slot = "npc_mechanic"
+placeholder_outfit = Color(0.32, 0.12, 0.06, 1)
+
+[node name="Model" parent="CharacterRig" instance=ExtResource("3_placeholder_character")]

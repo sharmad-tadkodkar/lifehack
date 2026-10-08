@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/npc/npc_idle_loop.gd" id="1_npc_idle_loop"]
+[ext_resource type="Script" path="res://src/slots/character_rig.gd" id="2_character_rig"]
+[ext_resource type="PackedScene" path="res://scenes/placeholders/placeholder_character.tscn" id="3_placeholder_character"]
+[ext_resource type="PackedScene" path="res://scenes/props/phone.tscn" id="4_phone"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.3
+height = 1.8
+
+[node name="NpcPhone" type="Node3D" node_paths=PackedStringArray("held_prop")]
+script = ExtResource("1_npc_idle_loop")
+held_prop = NodePath("Phone")
+
+[node name="Collision" type="StaticBody3D" parent="."]
+
+[node name="Shape" type="CollisionShape3D" parent="Collision"]
+position = Vector3(0, 0.9, 0.1)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="CharacterRig" type="Node3D" parent="."]
+script = ExtResource("2_character_rig")
+slot = "npc_phone"
+placeholder_outfit = Color(0.18, 0.2, 0.12, 1)
+
+[node name="Model" parent="CharacterRig" instance=ExtResource("3_placeholder_character")]
+
+[node name="Phone" parent="." instance=ExtResource("4_phone")]
