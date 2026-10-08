@@ -60,14 +60,14 @@ func _apply_floor() -> void:
 		material.set_shader_parameter(key, Config.v(FILE, "floor", key))
 
 	var textures := Config.section("assets", "floor_textures")
-	var use_textures: bool = str(textures.get("albedo", "")) != ""
-	material.set_shader_parameter("use_textures", use_textures)
-	if use_textures:
-		material.set_shader_parameter("tiling", textures.get("tiling", 0.25))
-		for key in ["albedo", "normal", "roughness"]:
-			var path := str(textures.get(key, ""))
-			if path != "":
-				material.set_shader_parameter(key + "_texture", load(path))
+	material.set_shader_parameter("tiling", textures.get("tiling", 0.25))
+	for key in ["albedo", "normal", "roughness", "height"]:
+		var path := str(textures.get(key, ""))
+		var texture: Texture2D = load(path) if path != "" else null
+		if path != "" and texture == null:
+			push_error("[lighting] floor %s texture could not be loaded: %s" % [key, path])
+		material.set_shader_parameter("use_%s_texture" % key, texture != null)
+		material.set_shader_parameter(key + "_texture", texture)
 
 
 func _set_properties(target: Object, props: Dictionary, where: String) -> void:

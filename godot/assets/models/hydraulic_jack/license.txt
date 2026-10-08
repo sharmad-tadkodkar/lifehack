@@ -1,0 +1,11 @@
+Model Information:
+* title:	Hydraulic Jack
+* source:	https://sketchfab.com/3d-models/hydraulic-jack-f5e69416bddc40fb8a152f05888bfe94
+* author:	Ben Milette (https://sketchfab.com/benmilette)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Hydraulic Jack" (https://sketchfab.com/3d-models/hydraulic-jack-f5e69416bddc40fb8a152f05888bfe94) by Ben Milette (https://sketchfab.com/benmilette) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

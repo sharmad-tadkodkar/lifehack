@@ -41,8 +41,13 @@ func _bind() -> void:
 		return
 	flat_wheel = find_part("flat_wheel_node")
 	if flat_wheel:
+		# A real model's wheel defines where the hub is; the marker only keeps its orientation.
+		if not using_placeholder and _setting("align_hub_to_flat_wheel", false):
+			hub.global_position = flat_wheel.global_position
 		flat_wheel.reparent(hub, true)
 		flat_wheel_rest = flat_wheel.transform
+		# e.g. lug bolts baked into the wheel mesh: the game's own nuts replace them
+		AssetSlot.hide_meshes_with_materials(flat_wheel, _setting("flat_wheel_hide_materials", []))
 
 
 ## Creates `count` lug nuts on the hub (count comes from the procedure data).

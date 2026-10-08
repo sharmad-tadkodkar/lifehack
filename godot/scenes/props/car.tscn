@@ -5,7 +5,7 @@
 [ext_resource type="Script" path="res://src/game/interaction_spot.gd" id="3_interaction_spot"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1"]
-size = Vector3(1.8, 1.2, 4.5)
+size = Vector3(1.95, 1.15, 4.6)
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_2"]
 radius = 1
@@ -28,18 +28,18 @@ model_path = NodePath("Chassis/Model")
 sync_to_physics = false
 
 [node name="Shape" type="CollisionShape3D" parent="Chassis/Collision"]
-position = Vector3(0, 0.8, 0)
+position = Vector3(0, 0.72, 0)
 shape = SubResource("BoxShape3D_1")
 
 [node name="FlatWheelPivot" type="Marker3D" parent="Chassis"]
-position = Vector3(-0.78, 0.32, -1.33)
+position = Vector3(-0.91, 0.335, -1.3375)
 rotation = Vector3(0, 3.14159, 0)
 
 [node name="JackPoint" type="Marker3D" parent="Chassis"]
-position = Vector3(-0.72, 0.2, -0.85)
+position = Vector3(-0.8, 0.18, -0.84)
 
 [node name="LiftPivot" type="Marker3D" parent="."]
-position = Vector3(0.85, 0, 0)
+position = Vector3(0.91, 0, 0)
 
 [node name="Spots" type="Node3D" parent="."]
 
@@ -56,11 +56,11 @@ shape = SubResource("CylinderShape3D_2")
 position = Vector3(-0.65, 0, -0.6)
 
 [node name="Stand_wheel" type="Marker3D" parent="Spots/CornerSpot"]
-position = Vector3(0.42, 0, -0.15)
+position = Vector3(0.25, 0, -0.15)
 rotation = Vector3(0, -1.5708, 0)
 
 [node name="Stand_jack_point" type="Marker3D" parent="Spots/CornerSpot"]
-position = Vector3(-0.35, 0, 0.25)
+position = Vector3(-0.2, 0, 0.26)
 rotation = Vector3(0, -1.5708, 0)
 
 [node name="Cam_wheel" type="Camera3D" parent="Spots/CornerSpot"]
@@ -80,7 +80,7 @@ fov = 52
 [node name="wheel" type="Node3D" parent="Spots/CornerSpot/Rests"]
 
 [node name="flat" type="Marker3D" parent="Spots/CornerSpot/Rests/wheel"]
-position = Vector3(0.05, 0.105, -1.35)
+position = Vector3(-0.05, 0, 1.75)
 rotation = Vector3(0, 0.4, 1.5708)
 
 [node name="nuts" type="Marker3D" parent="Spots/CornerSpot/Rests/wheel"]
@@ -88,7 +88,7 @@ position = Vector3(0.55, 0.012, -0.75)
 rotation = Vector3(0, 0, 0)
 
 [node name="drop" type="Marker3D" parent="Spots/CornerSpot/Rests/wheel"]
-position = Vector3(0.45, 0.015, -0.9)
+position = Vector3(0.45, 0, -0.9)
 rotation = Vector3(0, 0.6, 0)
 
 [node name="jack" type="Marker3D" parent="Spots/CornerSpot/Rests/jack_point"]
@@ -96,7 +96,7 @@ position = Vector3(0.1, 0, 0.65)
 rotation = Vector3(0, -1.5708, 0)
 
 [node name="drop" type="Marker3D" parent="Spots/CornerSpot/Rests/jack_point"]
-position = Vector3(0.2, 0.015, 0.95)
+position = Vector3(0.2, 0, 0.95)
 rotation = Vector3(0, 0.2, 0)
 
 [node name="TrunkSpot" type="Area3D" parent="Spots"]
@@ -125,9 +125,9 @@ fov = 50
 [node name="trunk" type="Node3D" parent="Spots/TrunkSpot/Rests"]
 
 [node name="spare" type="Marker3D" parent="Spots/TrunkSpot/Rests/trunk"]
-position = Vector3(0, 0.62, -1.25)
+position = Vector3(0, 0.45, -1.25)
 rotation = Vector3(0, 0, 1.5708)
 
 [node name="drop" type="Marker3D" parent="Spots/TrunkSpot/Rests/trunk"]
-position = Vector3(0.35, 0.62, -1.2)
+position = Vector3(0.35, 0.45, -1.2)
 rotation = Vector3(0, 0, 0)

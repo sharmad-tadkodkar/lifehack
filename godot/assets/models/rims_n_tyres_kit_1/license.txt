@@ -1,0 +1,11 @@
+Model Information:
+* title:	Rims_N_Tyres_kit_1.0 (CC0)
+* source:	https://sketchfab.com/3d-models/rims-n-tyres-kit-10-cc0-97c7a90210974cb089f15ee7682e4d65
+* author:	britdawgmasterfunk (https://sketchfab.com/britdawgmasterfunk)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Rims_N_Tyres_kit_1.0 (CC0)" (https://sketchfab.com/3d-models/rims-n-tyres-kit-10-cc0-97c7a90210974cb089f15ee7682e4d65) by britdawgmasterfunk (https://sketchfab.com/britdawgmasterfunk) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

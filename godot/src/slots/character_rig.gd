@@ -27,6 +27,7 @@ func _bind() -> void:
 		push_error("[slot %s] model has no AnimationPlayer" % slot)
 	else:
 		anim = players[0]
+		_load_animation_libraries()
 	hand_socket = _make_hand_socket()
 	_load_config()
 	Config.reloaded.connect(_load_config)
@@ -38,14 +39,44 @@ func _load_config() -> void:
 	_blend_locomotion = Config.v("animation", "blend", "locomotion")
 
 
-## The model's clip for a logical name. Map values may carry a speed: "Kneeling Down@-1" plays
-## that clip backwards (handy for stand_up), "Standard Walk@1.2" a little faster.
+## Adds every AnimationLibrary found in assets.cfg [slot] animation_dir (e.g. Mixamo clips imported
+## as libraries by tools/setup_mixamo.gd) to the model's AnimationPlayer, named after the file:
+## "Kneeling Down.fbx" -> library "kneeling_down", so its clip is "kneeling_down/mixamo_com".
+func _load_animation_libraries() -> void:
+	var dir := str(_setting("animation_dir", ""))
+	if dir == "" or using_placeholder:
+		return
+	for file_name in DirAccess.get_files_at(dir):
+		if not file_name.ends_with(".import"):
+			continue
+		var import_cfg := ConfigFile.new()
+		if import_cfg.load(dir.path_join(file_name)) != OK:
+			continue
+		if import_cfg.get_value("remap", "type", "") != "AnimationLibrary":
+			continue
+		var source := file_name.trim_suffix(".import")
+		var lib_name := StringName(source.get_basename().to_snake_case())
+		var library := load(dir.path_join(source)) as AnimationLibrary
+		if library and not anim.has_animation_library(lib_name):
+			anim.add_animation_library(lib_name, library)
+
+
+## The model's clip for a logical name. Map values may carry a speed: "kneeling_down/mixamo_com@-1"
+## plays it backwards (standing up), "@1.2" faster, "@0" holds the first frame (a pose). Separate
+## alternatives with "|": the first clip the model actually has wins, so a map can name clips that
+## will only arrive later ("standard_walk/mixamo_com|shrugging/mixamo_com@0").
 func clip_for(logical: String) -> String:
 	return parse_clip_spec(_spec_for(logical))[0]
 
 
 func _spec_for(logical: String) -> String:
-	return str(Config.section("animation", "clips." + slot).get(logical, logical))
+	var spec := str(Config.section("animation", "clips." + slot).get(logical, logical))
+	var options := spec.split("|", false)
+	for option in options:
+		var clip: String = parse_clip_spec(option.strip_edges())[0]
+		if anim and anim.has_animation(clip):
+			return option.strip_edges()
+	return options[0].strip_edges() if not options.is_empty() else logical
 
 
 ## "Clip@speed" -> [clip, speed]
@@ -88,7 +119,9 @@ func clip_length(logical: String) -> float:
 	var clip: String = spec[0]
 	if anim == null or not anim.has_animation(clip):
 		return 0.0
-	return anim.get_animation(clip).length / maxf(absf(spec[1]), 0.01)
+	if is_zero_approx(float(spec[1])):
+		return 0.0
+	return anim.get_animation(clip).length / absf(spec[1])
 
 
 ## Picks idle / walk / jog for a ground speed and scales playback so feet don't slide.
@@ -115,8 +148,34 @@ func _make_hand_socket() -> Node3D:
 	if skeletons.is_empty():
 		push_error("[slot %s] model has no Skeleton3D for the hand socket" % slot)
 		return model
+	var skeleton := skeletons[0] as Skeleton3D
 	var attachment := BoneAttachment3D.new()
-	attachment.name = "HandSocket"
+	attachment.name = "HandBone"
 	attachment.bone_name = str(_setting("hand_bone", ""))
-	skeletons[0].add_child(attachment)
-	return attachment
+	skeleton.add_child(attachment)
+	var socket := Marker3D.new()
+	socket.name = "HandSocket"
+	attachment.add_child(socket)
+	socket.transform = _palm_frame(skeleton, attachment.bone_name)
+	return socket
+
+
+## A palm-centred frame in the hand bone's space, matching the placeholder's hand socket so item
+## Grip markers fit any humanoid: -Y toward the fingers, -Z toward the thumb, +X the back of the hand.
+## Built from the rest positions of a finger and the thumb (assets.cfg finger_bone / thumb_bone).
+func _palm_frame(skeleton: Skeleton3D, hand: String) -> Transform3D:
+	var hand_index := skeleton.find_bone(hand)
+	var finger_index := skeleton.find_bone(str(_setting("finger_bone", "RightMiddleProximal")))
+	var thumb_index := skeleton.find_bone(str(_setting("thumb_bone", "RightThumbProximal")))
+	if hand_index < 0 or finger_index < 0 or thumb_index < 0:
+		push_error("[slot %s] hand/finger/thumb bones not found; hand socket sits on the bone" % slot)
+		return Transform3D.IDENTITY
+	var to_hand := skeleton.get_bone_global_rest(hand_index).affine_inverse()
+	var finger := to_hand * skeleton.get_bone_global_rest(finger_index).origin
+	var thumb := to_hand * skeleton.get_bone_global_rest(thumb_index).origin
+	var along := finger.normalized()
+	var thumb_side := (thumb - along * thumb.dot(along)).normalized()
+	var y := -along
+	var z := -thumb_side
+	var basis := Basis(y.cross(z), y, z)
+	return Transform3D(basis, finger * float(_setting("palm_offset", 0.6)))

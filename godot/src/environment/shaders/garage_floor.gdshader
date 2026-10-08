@@ -13,11 +13,19 @@ uniform float grain_scale = 3.5;
 uniform float grain_strength = 0.18;
 uniform float specular_amount = 0.5;
 
-uniform bool use_textures = false;
+// Texture set (assets.cfg [floor_textures]); each map is optional.
 uniform float tiling = 0.25;
+uniform vec3 albedo_tint : source_color = vec3(1.0);
+uniform float height_normal_strength = 4.0;
+uniform bool use_albedo_texture = false;
+uniform bool use_roughness_texture = false;
+uniform bool use_normal_texture = false;
+uniform bool use_height_texture = false;
 uniform sampler2D albedo_texture : source_color, hint_default_white, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D roughness_texture : hint_default_white, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D normal_texture : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
+// a displacement map; surface normals are derived from its slopes when there is no normal map
+uniform sampler2D height_texture : hint_default_black, filter_linear_mipmap, repeat_enable;
 
 varying vec3 world_pos;
 
@@ -59,12 +67,24 @@ void fragment() {
 
 	vec3 col = base_color * (1.0 - grain_strength + 2.0 * grain_strength * grain);
 	float rough = base_roughness * (0.75 + 0.5 * grain);
-	if (use_textures) {
-		vec2 uv = p * tiling;
-		col = texture(albedo_texture, uv).rgb;
+	vec2 uv = p * tiling;
+	if (use_albedo_texture) {
+		col = texture(albedo_texture, uv).rgb * albedo_tint;
+	}
+	if (use_roughness_texture) {
 		rough = texture(roughness_texture, uv).g;
+	}
+	if (use_normal_texture) {
 		NORMAL_MAP = texture(normal_texture, uv).rgb;
 		NORMAL_MAP_DEPTH = mix(1.0, 0.2, wet);
+	} else if (use_height_texture) {
+		vec2 texel = 1.0 / vec2(textureSize(height_texture, 0));
+		float h = texture(height_texture, uv).r;
+		float hx = texture(height_texture, uv + vec2(texel.x, 0.0)).r;
+		float hy = texture(height_texture, uv + vec2(0.0, texel.y)).r;
+		vec3 n = normalize(vec3((h - hx) * height_normal_strength, (h - hy) * height_normal_strength, 1.0));
+		NORMAL_MAP = n * 0.5 + 0.5;
+		NORMAL_MAP_DEPTH = mix(1.0, 0.25, wet);
 	}
 
 	ALBEDO = col * mix(1.0, 1.0 - wet_darkening, wet);

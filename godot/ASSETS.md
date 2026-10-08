@@ -1,5 +1,31 @@
 # Asset shopping list
 
+## Current status (what is plugged in)
+
+| Slot | In use | Notes |
+|---|---|---|
+| Car + car on the lift | **Hoonicorn V2** (`hoonicorn_v2_rigged_blender`) | Scaled 0.36, turned 180°; flat = `DEF-Wheel_Ft_L_3`, its baked `Tire_Bolts` hidden so the game's nuts replace them. Carries real sponsor decals (Ford, Monster, Forza Horizon...); hide them with `hide_materials=["Sticker_1", ...]` in `assets.cfg [car]`. |
+| Spare wheel | **Rims_N_Tyres kit**, part `Wheel Rear Left_30` | `part=` picks one wheel out of the kit and centres it |
+| Jack | **Hydraulic (bottle) jack** | `lift_mode="translate"`: piston + screw slide up; handle pose borrowed from the model's own animation |
+| Lug wrench | **Cross wheel spanner** | Scaled 1.9 (modelled at half size), socket shifted to the origin |
+| Player / bench NPC / mechanic | **character.fbx / character-2.fbx / character-3.fbx** (Mixamo) | Retargeted to Godot's humanoid skeleton by `tools/setup_mixamo.gd`; hand socket derived from the hand bones |
+| Animations | Kneeling Down/Idle/Inspecting, Picking Up, Pull Heavy Object, Pulling Lever, Pushing, Shrugging, Standing Torch Inspect Upward, Texting While Standing | Imported as AnimationLibraries, loaded from `assets/models` |
+| Floor | **Poly Haven Garage Floor** (diffuse + displacement) | The 4K normal/roughness EXRs use DWA compression Godot can't read: normals come from the displacement map, roughness stays procedural. PNG versions of those two maps would plug straight in. |
+| Lug nuts, tool cart, phone, garage props, wall/door textures | placeholders | not supplied yet |
+
+**Still missing from Mixamo** (`godot/run_tests.sh` lists these in `test_assets`): **Breathing Idle**, **Standard Walk**,
+**Jogging** (until then idle/walk/jog hold a neutral pose), **Plant A Plant**, **Working On Device**, **Looking Around**,
+**Idle** (Weight Shift), **Reaching Out** (these fall back to similar clips). Drop the FBX files (Without Skin, In Place for
+walk/jog) into `godot/assets/models/`, then run:
+
+```bash
+godot --headless --path godot -s res://tools/setup_mixamo.gd
+godot --headless --path godot --import
+godot/run_tests.sh
+```
+
+The clip maps in `config/animation.cfg` already name these files first, so nothing else needs editing.
+
 Everything you see in the garage right now is a **placeholder**: simple shapes with real materials,
 there only so the lighting, animation and gameplay can be built and judged. Press **F3** in-game to tag
 every placeholder that is still on screen.
@@ -192,6 +218,12 @@ same name, the description tells you which one. Loop = set *Loop Mode: Linear* i
 | `kneel_down` / `kneel_idle` / `stand_up` | **Kneeling Down** / **Kneeling Inspecting** / **Kneeling Down@-1** | / ✓ / |
 
 ### Importing Mixamo into Godot 4.7
+
+**Automated:** `godot --headless --path godot -s res://tools/setup_mixamo.gd` does steps 2–3 below for every FBX
+in `assets/models` (bone maps per Mixamo prefix, retarget, animation-library import, loop flags from
+`animation.cfg [mixamo_import] loop_files`), and `CharacterRig` loads every clip library from `animation_dir` at
+runtime, so you can point `assets.cfg` straight at the character FBX (no inherited scene needed). The manual steps
+are kept here for reference.
 
 1. Put the files in `assets/models/characters/<name>.fbx` and `assets/models/animations/<clip>.fbx`.
 2. **Character file:** open Advanced Import Settings, select `Skeleton3D`, then under *Retarget › Bone Map*

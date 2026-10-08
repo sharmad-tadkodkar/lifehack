@@ -2,7 +2,7 @@ class_name ActionPlayer
 extends Node
 ## Plays a StepResult out in the world: the character clips named in the procedure JSON (logical
 ## names, played through CharacterRig's AnimationPlayer) and tweens for the mechanical motion:
-## the wrench turning each nut, nuts spinning off into a pile, the floor jack rolling under and
+## the wrench turning each nut, nuts spinning off into a pile, the jack rolling under and
 ## pumping the car up, the wheel sliding off the hub.
 ##
 ## Each `mechanics` id in the JSON has a sequence below that uses the step's `animations` in
@@ -120,7 +120,7 @@ func _remove_wheel() -> void:
 	await _tween_method(func(t: float) -> void:
 		wheel.transform = car().flat_wheel_rest.interpolate_with(slid, t), 0.0, 1.0, _m.wheel_slide_time)
 	var lifted := wheel.global_transform
-	var rest := visuals.rest_marker("wheel", "flat").global_transform
+	var rest := visuals.rest_transform("flat", "wheel")
 	await _tween_method(func(t: float) -> void:
 		visuals.attach_global(wheel, lifted.interpolate_with(rest, t)), 0.0, 1.0, _m.wheel_lay_time)
 	await _stand(_clip(3))
@@ -167,7 +167,7 @@ func _lower_car() -> void:
 		car().set_raise(1.0 - t)
 		jack.set_lift(1.0 - t), 0.0, 1.0, _m.lower_time)
 	var under := jack.global_transform
-	var rest := visuals.rest_marker("jack_point", "jack").global_transform
+	var rest := visuals.rest_transform("jack", "jack_point")
 	await _tween_method(func(t: float) -> void:
 		visuals.attach_global(jack, under.interpolate_with(rest, t)), 0.0, 1.0, _m.jack_roll_time)
 	player.rig.play("idle")

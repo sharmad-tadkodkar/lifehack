@@ -6,6 +6,10 @@ extends CharacterBody3D
 
 @export var waypoints: Node3D
 
+## Emitted every physics tick. Coroutines await this (not the SceneTree) so that freeing the NPC
+## mid-walk simply drops them instead of resuming on a freed object.
+signal _ticked
+
 var _cfg := {}
 var _target := Vector3.ZERO
 var _moving := false
@@ -37,6 +41,7 @@ func _physics_process(delta: float) -> void:
 		_turn_toward(ground, delta)
 	if rig.locomotion_enabled:
 		rig.set_locomotion(get_real_velocity().length())
+	_ticked.emit()
 
 
 func _patrol() -> void:
@@ -61,7 +66,7 @@ func _walk_to(stop: NpcWaypoint) -> void:
 	_moving = true
 	var stuck := 0.0
 	while _moving and is_inside_tree():
-		await get_tree().physics_frame
+		await _ticked
 		if get_real_velocity().length() < 0.1:
 			stuck += get_physics_process_delta_time()
 			if stuck > float(_cfg.blocked_timeout):
@@ -74,7 +79,7 @@ func _face(direction: Vector3) -> void:
 	var t := 0.0
 	while t < 0.6 and is_inside_tree():
 		_turn_toward(direction, get_physics_process_delta_time())
-		await get_tree().physics_frame
+		await _ticked
 		t += get_physics_process_delta_time()
 
 
@@ -83,23 +88,34 @@ func _do(task: String) -> void:
 	var hold := randf_range(_cfg.task_min, _cfg.task_max)
 	match task:
 		"inspect":
-			await rig.play_and_wait("kneel_down")
+			await _play_and_wait("kneel_down")
 			rig.play("kneel_idle")
 			await _wait(hold)
-			await rig.play_and_wait("stand_up")
+			await _play_and_wait("stand_up")
 		"work_overhead":
 			rig.play(task)
 			await _wait(hold)
 		"look_around", "browse_shelf":
-			await rig.play_and_wait(task)
+			await _play_and_wait(task)
 		_:
 			rig.play("idle")
 			await _wait(hold)
 	rig.play("idle")
 
 
+## Sleeps on a Timer this NPC owns (freed with it), for the same reason as _ticked.
 func _wait(seconds: float) -> void:
-	await get_tree().create_timer(seconds, false).timeout
+	var timer := Timer.new()
+	timer.one_shot = true
+	add_child(timer)
+	timer.start(maxf(seconds, 0.01))
+	await timer.timeout
+	timer.queue_free()
+
+
+func _play_and_wait(clip: String) -> void:
+	rig.play(clip)
+	await _wait(rig.clip_length(clip))
 
 
 func _turn_toward(direction: Vector3, delta: float) -> void:

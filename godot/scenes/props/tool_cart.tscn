@@ -40,7 +40,7 @@ fov = 52
 [node name="tool_cart" type="Node3D" parent="ToolCartSpot/Rests"]
 
 [node name="lug_wrench" type="Marker3D" parent="ToolCartSpot/Rests/tool_cart"]
-position = Vector3(0.08, 0.875, -0.85)
+position = Vector3(0.08, 0.86, -0.85)
 rotation = Vector3(0, 0.3, 0)
 
 [node name="jack" type="Marker3D" parent="ToolCartSpot/Rests/tool_cart"]
@@ -48,5 +48,5 @@ position = Vector3(0.78, 0, -1.15)
 rotation = Vector3(0, 0, 0)
 
 [node name="drop" type="Marker3D" parent="ToolCartSpot/Rests/tool_cart"]
-position = Vector3(-0.2, 0.875, -0.75)
+position = Vector3(-0.2, 0.86, -0.75)
 rotation = Vector3(0, 0, 0)

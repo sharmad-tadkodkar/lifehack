@@ -28,11 +28,13 @@ func test_mechanic_reaches_the_first_stop() -> void:
 	var first: Node3D = garage.get_node("NpcWaypoints").get_child(0)
 	var start := mechanic.global_position
 	var closest := INF
+	var farthest := 0.0
 	for i in 120:
 		await wait_physics_frames(5)
 		closest = minf(closest, Vector2(mechanic.global_position.x - first.global_position.x,
 			mechanic.global_position.z - first.global_position.z).length())
-	assert_gt(start.distance_to(mechanic.global_position), 1.0, "moved")
+		farthest = maxf(farthest, start.distance_to(mechanic.global_position))
+	assert_gt(farthest, 1.0, "walked away from the start")
 	assert_lt(closest, 0.3, "got to the first waypoint")
 
 

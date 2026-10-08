@@ -25,8 +25,22 @@ func _ready() -> void:
 func _fidget_loop() -> void:
 	while is_inside_tree():
 		var cfg := Config.section("npc", config_section)
-		await get_tree().create_timer(randf_range(cfg.fidget_min, cfg.fidget_max), false).timeout
+		await _wait(randf_range(cfg.fidget_min, cfg.fidget_max))
 		if not is_inside_tree() or fidget_clips.is_empty():
 			return
-		await rig.play_and_wait(fidget_clips[randi() % fidget_clips.size()])
-		rig.play(base_clip)
+		var fidget := fidget_clips[randi() % fidget_clips.size()]
+		# a model without that fidget clip may map it to the base loop; don't restart it
+		if rig.clip_for(fidget) != rig.clip_for(base_clip):
+			rig.play(fidget)
+			await _wait(rig.clip_length(fidget))
+			rig.play(base_clip)
+
+
+## Sleeps on a Timer this NPC owns, so freeing the NPC drops the loop instead of resuming it.
+func _wait(seconds: float) -> void:
+	var timer := Timer.new()
+	timer.one_shot = true
+	add_child(timer)
+	timer.start(maxf(seconds, 0.01))
+	await timer.timeout
+	timer.queue_free()

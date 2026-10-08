@@ -4,6 +4,10 @@ extends Node3D
 ## which wheel is on the hub, and each item on its rest marker, in the player's hand, or in use.
 ## apply() snaps; animated transitions (ActionPlayer) end by calling it, so state and visuals
 ## can never drift apart.
+##
+## Every placement keeps each item's own scale (a real car's wheel is a node inside a scaled
+## model; a real character's hand bone carries the character's scale), and items laid on a rest
+## marker are settled onto it by their actual bounds, so any model sits on the surface.
 
 @export var car: CarRig
 @export var player: PlayerController
@@ -14,6 +18,10 @@ extends Node3D
 
 var model: ProcedureModel
 var _spots: Array[InteractionSpot] = []
+## instance id -> the item's own global scale, captured where it starts
+var _scale_of: Dictionary = {}
+## instance id -> AABB of the item's meshes in its own (unscaled) frame
+var _bounds_of: Dictionary = {}
 
 
 func setup(procedure: ProcedureModel) -> void:
@@ -21,6 +29,11 @@ func setup(procedure: ProcedureModel) -> void:
 	for node in get_tree().get_nodes_in_group(&"interaction_spot"):
 		_spots.append(node as InteractionSpot)
 	car.setup_nuts(model.data.nut_count)
+	for item_id: String in model.inventory.item_at:
+		var node := item_node(item_id)
+		if node:
+			_scale_of[node.get_instance_id()] = node.global_basis.get_scale()
+			_bounds_of[node.get_instance_id()] = _measure(node)
 	apply()
 
 
@@ -84,10 +97,31 @@ func place_item(item_id: String, location: String, drop_index := 0) -> bool:
 					push_error("[visuals] no rest for %s at %s" % [item_id, location])
 					return false
 				var spacing := float(Config.v("animation", "mechanics", "drop_spacing"))
-				_attach_global(node, self, drop.global_transform.translated_local(Vector3(spacing * drop_index, 0.0, 0.0)))
+				var spot := drop.global_transform.translated_local(Vector3(spacing * drop_index, 0.0, 0.0))
+				_attach_global(node, self, settle(node, spot))
 				return true
-			_attach_global(node, self, marker.global_transform)
+			_attach_global(node, self, settle(node, marker.global_transform))
 	return false
+
+
+## `xform` moved up or down so `node`, oriented that way, rests on the height of `xform.origin`.
+func settle(node: Node3D, xform: Transform3D) -> Transform3D:
+	var bounds: AABB = _bounds_of.get(node.get_instance_id(), AABB())
+	if bounds.size == Vector3.ZERO:
+		return xform
+	var rotation := xform.basis.orthonormalized()
+	var lowest := INF
+	for i in 8:
+		lowest = minf(lowest, (rotation * bounds.get_endpoint(i)).y)
+	xform.origin.y -= lowest
+	return xform
+
+
+## Settled transform of `item_id` on its rest marker at `location`.
+func rest_transform(item_id: String, location: String) -> Transform3D:
+	var node := item_node(item_id)
+	var marker := rest_marker(location, item_id)
+	return settle(node, marker.global_transform) if marker else node.global_transform
 
 
 func hold_transform(item_id: String) -> Transform3D:
@@ -144,13 +178,29 @@ func attach_global(node: Node3D, xform: Transform3D) -> void:
 	_attach_global(node, self, xform)
 
 
+## `local` is relative to the parent's position and orientation, ignoring the parent's scale.
 func _attach(node: Node3D, parent: Node3D, local: Transform3D) -> void:
-	if node.get_parent() != parent:
-		node.reparent(parent, false)
-	node.transform = local
+	var frame := parent.global_transform
+	frame.basis = frame.basis.orthonormalized()
+	_attach_global(node, parent, frame * local)
 
 
 func _attach_global(node: Node3D, parent: Node3D, xform: Transform3D) -> void:
 	if node.get_parent() != parent:
 		node.reparent(parent, false)
-	node.global_transform = xform
+	var scale: Vector3 = _scale_of.get(node.get_instance_id(), Vector3.ONE)
+	node.global_transform = Transform3D(Basis(xform.basis.get_rotation_quaternion()) * Basis.from_scale(scale), xform.origin)
+
+
+## Bounds of the visible meshes under `node`, in `node`'s position + orientation frame.
+func _measure(node: Node3D) -> AABB:
+	var frame := Transform3D(node.global_basis.orthonormalized(), node.global_position).affine_inverse()
+	var bounds := AABB()
+	var first := true
+	for mesh_instance: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):
+		if not mesh_instance.is_visible_in_tree() or mesh_instance.mesh == null:
+			continue
+		var box: AABB = (frame * mesh_instance.global_transform) * mesh_instance.mesh.get_aabb()
+		bounds = box if first else bounds.merge(box)
+		first = false
+	return bounds

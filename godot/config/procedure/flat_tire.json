@@ -10,7 +10,7 @@
 	},
 	"items": {
 		"lug_wrench": { "label": "Lug wrench", "starts_at": "tool_cart" },
-		"jack": { "label": "Floor jack", "starts_at": "tool_cart" },
+		"jack": { "label": "Jack", "starts_at": "tool_cart" },
 		"spare": { "label": "Spare wheel", "starts_at": "trunk" },
 		"flat": { "label": "Flat wheel", "starts_at": "installed" }
 	},
@@ -66,8 +66,8 @@
 			"effects": { "car_raised": true, "jack_placed": true },
 			"animations": ["kneel_down", "place_jack", "stand_up", "pump_jack"],
 			"mechanics": "raise_car",
-			"success": "Saddle on the pinch weld, a few pumps, and the flat's off the ground.",
-			"wrong_tool": "You'll want the floor jack from the tool cart for that.",
+			"success": "Jack under the pinch weld, a few pumps, and the flat's off the ground.",
+			"wrong_tool": "You'll want the jack from the tool cart for that.",
 			"fail": {
 				"car_raised": "It's already up on the jack.",
 				"nuts": "Up it goes... and now the wheel will spin when you try the nuts. Loosen them first, while it's still on the ground."
