@@ -1,8 +1,11 @@
 extends Node
-## Boot: applies graphics.cfg and handles debug flags passed after `--`:
+## Boot: applies graphics.cfg, runs the intro, then hands control to the player.
+## Debug flags go after `--` on the command line:
 ##   --shot=<png path>   save a viewport screenshot after --frames=N (default 120), then quit
-##   --size=WxH          force a windowed size (handy for consistent captures)
-##   --campos=x,y,z --camlook=x,y,z   move the overview camera (look-dev captures)
+##   --size=WxH          force a windowed size (consistent captures)
+##   --skip-intro        start straight in the follow camera
+##   --hold=a,b          hold these input actions from the start (e.g. move_forward,jog)
+##   --campos=x,y,z --camlook=x,y,z   look-dev camera at a fixed spot
 ##   --autoplay          the procedure plays itself (wired up in the animation milestone)
 
 const SCALING_MODES := {
@@ -13,13 +16,41 @@ const SCALING_MODES := {
 
 var debug_args: Dictionary = {}
 
+@onready var player: PlayerController = $Player
+@onready var director: CameraDirector = $CameraDirector
+
 
 func _ready() -> void:
 	debug_args = _parse_user_args()
 	_apply_graphics()
-	_setup_overview_camera()
 	if debug_args.has("shot"):
+		director.mouse_capture_allowed = false
 		_capture_after(int(debug_args.get("frames", "120")), debug_args["shot"])
+	if debug_args.has("campos"):
+		_add_lookdev_camera()
+	for action in str(debug_args.get("hold", "")).split(",", false):
+		Input.action_press(action)
+	_start()
+
+
+func _start() -> void:
+	player.controls_enabled = false
+	var car := $WorkBay/Car as Node3D
+	player.face_direction(car.global_position - player.global_position)
+	director.set_follow_yaw(player.facing_yaw())
+	director.snap_to_target()
+	var skip: bool = debug_args.has("skip-intro") or not Config.v("camera", "intro", "enabled")
+	if not skip:
+		director.play_intro($Shots/IntroStart, $Shots/IntroEnd,
+			Config.v("camera", "intro", "duration"), Config.v("camera", "intro", "handoff"))
+		await director.intro_finished
+	player.controls_enabled = true
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Any key or click during the intro skips it.
+	if director.is_in_intro() and (event is InputEventKey or event is InputEventMouseButton) and event.is_pressed():
+		director.skip_intro()
 
 
 func _parse_user_args() -> Dictionary:
@@ -60,14 +91,14 @@ func _apply_graphics() -> void:
 			DisplayServer.window_set_size(window.get("windowed_size", Vector2i(1600, 900)))
 
 
-func _setup_overview_camera() -> void:
-	var cam := get_node_or_null(^"OverviewCamera") as Camera3D
-	if cam == null:
-		return
+func _add_lookdev_camera() -> void:
+	var cam := Camera3D.new()
+	cam.name = "LookDevCamera"
 	cam.fov = Config.v("camera", "overview", "fov")
-	if debug_args.has("campos"):
-		cam.global_position = _parse_vec3(debug_args["campos"])
-		cam.look_at(_parse_vec3(debug_args.get("camlook", "0,0.6,0")))
+	add_child(cam)
+	cam.global_position = _parse_vec3(debug_args["campos"])
+	cam.look_at(_parse_vec3(debug_args.get("camlook", "0,0.6,0")))
+	cam.make_current()
 
 
 func _parse_vec3(text: String) -> Vector3:

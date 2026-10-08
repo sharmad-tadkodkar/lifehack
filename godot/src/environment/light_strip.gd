@@ -36,6 +36,7 @@ func apply(settings: Dictionary) -> void:
 		_light.light_color = color
 		_light.light_energy = settings.get("light_energy", 1.0)
 		_light.area_range = settings.get("light_range", 5.0)
+		_light.light_specular = settings.get("light_specular", 1.0)
 		_light.shadow_enabled = settings.get("shadows", false)
 
 

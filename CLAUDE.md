@@ -28,8 +28,11 @@ Godot 4.7 (Forward+ renderer) is installed via `brew install --cask godot`; the 
 Debug flags go after `--`:
 ```bash
 godot --path godot -- --size=1600x900 --shot=$PWD/godot/captures/shot.png --frames=120   # screenshot, then quit
-godot --path godot -- --campos=-2.6,0.9,3.2 --camlook=-1.2,0.4,0.8 --shot=...           # move the overview camera
+godot --path godot -- --campos=-2.6,0.9,3.2 --camlook=-1.2,0.4,0.8 --shot=...           # look-dev camera
+godot --path godot -- --skip-intro --hold=move_forward,jog                              # hold input actions
+godot --path godot --write-movie $PWD/godot/captures/clip/f.png --fixed-fps 30 --quit-after 90 -- --skip-intro
 ```
+Controls: WASD move, Shift jog, mouse orbits (click to capture, Esc to release), any key skips the intro.
 In-game: F5 reloads every `config/*.cfg` live (lighting, camera, timings), F3 toggles PLACEHOLDER tags.
 `godot/captures/` is git-ignored scratch space for screenshots.
 
@@ -50,9 +53,12 @@ godot/
   src/autoload/      Config singleton: Config.v(file, section, key), Config.section(file, section)
   src/game/          main.gd (boot, graphics, debug flags)
   src/environment/   LightingRig (applies lighting.cfg), LightStrip, HexGrid, shaders/
-  src/slots/         AssetSlot base + rigs: swap placeholder models for real ones via config/assets.cfg
+  src/player/        PlayerController (CharacterBody3D), CameraDirector (follow cam + shot blends + intro)
+  src/slots/         AssetSlot base + rigs (CarRig, CharacterRig): swap placeholders for real models via assets.cfg
+  tools/             build_placeholder_anims.gd → regenerates placeholders/placeholder_character_anims.tres
   scenes/
-    main.tscn                      Garage + WorkBay (hero car) + cameras
+    main.tscn                      Garage + WorkBay (hero car) + Player + CameraDirector + Shots (intro cams)
+    characters/player.tscn         CharacterBody3D + CharacterRig slot
     environment/garage.tscn        shell, lights, probe, set dressing, car on the lift
     props/car.tscn                 car slot wrapper (CarRig): Model + FlatWheelPivot/JackPoint/LiftPivot markers
     placeholders/placeholder_*.tscn  stand-in models, replaced by real assets later (see godot/ASSETS.md)
@@ -69,4 +75,8 @@ godot/
   (and fail `test_lighting_config`). Light *positions* are layout and live in `garage.tscn`.
 - Code never references a placeholder directly: slots (`AssetSlot`) load `assets.cfg [slot] model` or
   keep their `Model` child, and parts are found by the node names configured there.
+- Characters play LOGICAL clip names (`rig.play("pump_jack")`); `animation.cfg [clips.<slot>]` maps them to
+  the model's clip names. Placeholder clips are generated: edit `tools/build_placeholder_anims.gd`, then
+  `godot --headless --path godot -s res://tools/build_placeholder_anims.gd`.
+- Fixed camera shots are Camera3D nodes used as markers (CameraDirector copies transform + FOV).
 - snake_case files and folders, PascalCase node names, typed GDScript.
