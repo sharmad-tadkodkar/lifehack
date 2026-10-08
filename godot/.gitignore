@@ -1,0 +1,6 @@
+# Godot editor cache (regenerated on import)
+.godot/
+/android/
+
+# Debug captures from --shot / --write-movie
+/captures/
