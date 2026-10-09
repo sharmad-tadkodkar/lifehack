@@ -1,0 +1,7 @@
+# Godot asset binaries live in Git LFS (models, textures; one file is over GitHub's 100 MB limit)
+godot/assets/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+godot/assets/**/*.bin filter=lfs diff=lfs merge=lfs -text
+godot/assets/**/*.png filter=lfs diff=lfs merge=lfs -text
+godot/assets/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+godot/assets/**/*.exr filter=lfs diff=lfs merge=lfs -text
+godot/assets/**/*.blend filter=lfs diff=lfs merge=lfs -text
