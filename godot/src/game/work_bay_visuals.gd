@@ -22,6 +22,7 @@ var _spots: Array[InteractionSpot] = []
 var _scale_of: Dictionary = {}
 ## instance id -> AABB of the item's meshes in its own (unscaled) frame
 var _bounds_of: Dictionary = {}
+var _glide: Tween
 
 
 func setup(procedure: ProcedureModel) -> void:
@@ -38,6 +39,8 @@ func setup(procedure: ProcedureModel) -> void:
 
 
 func apply() -> void:
+	if _glide and _glide.is_valid():
+		_glide.kill()
 	car.set_raise(1.0 if model.state.car_raised else 0.0)
 	_place_nuts(str(model.state.nuts))
 	var drops := {}
@@ -48,7 +51,50 @@ func apply() -> void:
 			drops[where] = index + 1
 	jack.set_lift(car.raise_amount if model.inventory.location_of("jack") == Inventory.INSTALLED else 0.0)
 	jack.set_pump(0.0)
+	player.rig.carrying = model.inventory.held != ""
 	_update_pattern_labels()
+
+
+## Like apply(), but items that change place glide there over `seconds` instead of jumping.
+## The glide runs in the item's new parent's frame, so an item going into the hand follows the
+## moving hand. Returns at once; a later apply() cuts a glide short.
+func apply_gliding(seconds: float) -> void:
+	var before := {}
+	for item_id: String in model.inventory.item_at:
+		var node := item_node(item_id)
+		if node:
+			before[node] = node.global_transform
+	apply()
+	var glides: Array = []
+	for node: Node3D in before:
+		var to := node.transform
+		var from := node.get_parent_node_3d().global_transform.affine_inverse() * (before[node] as Transform3D)
+		if from.is_equal_approx(to):
+			continue
+		node.transform = from
+		node.reset_physics_interpolation()
+		glides.append([node, from, to])
+	if glides.is_empty():
+		return
+	_glide = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	_glide.tween_method(func(t: float) -> void:
+		for glide: Array in glides:
+			(glide[0] as Node3D).transform = (glide[1] as Transform3D).interpolate_with(glide[2], t),
+		0.0, 1.0, maxf(seconds, 0.01)).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+## The world point the hand reaches for when `item_id` was just picked up (its grip, where it lies
+## now) or put down (its grip at the place it is going). Call before apply().
+func reach_point(item_id: String) -> Vector3:
+	var node := item_node(item_id)
+	var grip_local := (node as ItemRig).grip.position if node is ItemRig and (node as ItemRig).grip else Vector3.ZERO
+	var where := model.inventory.location_of(item_id)
+	var xform := node.global_transform
+	if where != Inventory.HANDS:
+		var resting: Variant = _resting_place(node, item_id, where, 0)[0]
+		if resting != null:
+			xform = _with_own_scale(node, resting)
+	return xform * grip_local
 
 
 ## Plays out a StepResult (ActionPlayer if there is one, otherwise everything snaps).
@@ -90,18 +136,26 @@ func place_item(item_id: String, location: String, drop_index := 0) -> bool:
 				_:
 					_attach(node, car.hub, Transform3D.IDENTITY)
 		_:
-			var marker := rest_marker(location, item_id)
-			if marker == null:
-				var drop := rest_marker(location, "drop")
-				if drop == null:
-					push_error("[visuals] no rest for %s at %s" % [item_id, location])
-					return false
-				var spacing := float(Config.v("animation", "mechanics", "drop_spacing"))
-				var spot := drop.global_transform.translated_local(Vector3(spacing * drop_index, 0.0, 0.0))
-				_attach_global(node, self, settle(node, spot))
-				return true
-			_attach_global(node, self, settle(node, marker.global_transform))
+			var resting := _resting_place(node, item_id, location, drop_index)
+			if resting[0] == null:
+				push_error("[visuals] no rest for %s at %s" % [item_id, location])
+				return false
+			_attach_global(node, self, resting[0])
+			return resting[1]
 	return false
+
+
+## [settled transform or null, whether the shared drop marker was used] for `item_id` set down
+## at `location`: its own rest marker there, else the location's drop marker, spaced by index.
+func _resting_place(node: Node3D, item_id: String, location: String, drop_index: int) -> Array:
+	var marker := rest_marker(location, item_id)
+	if marker:
+		return [settle(node, marker.global_transform), false]
+	var drop := rest_marker(location, "drop")
+	if drop == null:
+		return [null, false]
+	var spacing := float(Config.v("animation", "mechanics", "drop_spacing"))
+	return [settle(node, drop.global_transform.translated_local(Vector3(spacing * drop_index, 0.0, 0.0))), true]
 
 
 ## `xform` moved up or down so `node`, oriented that way, rests on the height of `xform.origin`.
@@ -186,10 +240,19 @@ func _attach(node: Node3D, parent: Node3D, local: Transform3D) -> void:
 
 
 func _attach_global(node: Node3D, parent: Node3D, xform: Transform3D) -> void:
-	if node.get_parent() != parent:
+	var moved := node.get_parent() != parent
+	if moved:
 		node.reparent(parent, false)
+	node.global_transform = _with_own_scale(node, xform)
+	if moved:
+		# a jump to a new parent (e.g. into the hand) is a teleport, not motion to interpolate
+		node.reset_physics_interpolation()
+
+
+## `xform`'s position and orientation with the item's own scale.
+func _with_own_scale(node: Node3D, xform: Transform3D) -> Transform3D:
 	var scale: Vector3 = _scale_of.get(node.get_instance_id(), Vector3.ONE)
-	node.global_transform = Transform3D(Basis(xform.basis.get_rotation_quaternion()) * Basis.from_scale(scale), xform.origin)
+	return Transform3D(Basis(xform.basis.get_rotation_quaternion()) * Basis.from_scale(scale), xform.origin)
 
 
 ## Bounds of the visible meshes under `node`, in `node`'s position + orientation frame.

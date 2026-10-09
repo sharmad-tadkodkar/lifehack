@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://src/game/procedure_controller.gd" id="11_procedure_controller"]
 [ext_resource type="Script" path="res://src/game/action_player.gd" id="12_action_player"]
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="13_hud"]
+[ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="14_pause_menu"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
@@ -76,6 +77,9 @@ player = NodePath("../Player")
 
 [node name="Hud" type="CanvasLayer" parent="."]
 script = ExtResource("13_hud")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+script = ExtResource("14_pause_menu")
 
 [node name="Shots" type="Node3D" parent="."]
 

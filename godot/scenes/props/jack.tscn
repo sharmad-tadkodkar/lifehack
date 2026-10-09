@@ -10,5 +10,5 @@ slot = "jack"
 [node name="Model" parent="." instance=ExtResource("2_placeholder_jack")]
 
 [node name="Grip" type="Marker3D" parent="."]
-position = Vector3(0, 0.17, 0)
-rotation = Vector3(0, 0, 0)
+position = Vector3(0.0312, 0.1311, -0.0082)
+rotation = Vector3(0.57497, -2.9435, 2.34077)

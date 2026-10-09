@@ -33,14 +33,16 @@ godot --path godot -- --skip-intro --hold=move_forward,jog                      
 godot --path godot --write-movie $PWD/godot/captures/clip/f.png --fixed-fps 30 --quit-after 90 -- --skip-intro
 godot --path godot -- --skip-intro --steps=3 --menu=wheel --choose=1                    # jump into a procedure state
 godot --path godot -- --skip-intro --autoplay                                           # watch the full procedure
+godot --path godot -- --skip-intro --pause-menu                                         # open the Esc menu
 godot --path godot --resolution 800x450 --write-movie $PWD/godot/captures/auto/f.png --fixed-fps 5 --quit-after 600 -- --skip-intro --autoplay
 ```
 `--steps=N` fast-forwards the first N real steps, `--menu=<location>` opens that spot's menu
 (wheel, jack_point, trunk, tool_cart), `--choose=a,b` picks menu rows. In zsh pass flags held in a
 variable with `${=args}` (zsh does not word-split `$args`).
 
-Controls: WASD move, Shift jog, mouse orbits (click to capture, Esc to release), any key skips the intro.
+Controls: WASD move, Shift jog, mouse orbits (click to capture), any key skips the intro.
 At a spot: E opens the action menu, 1-9 choose, Q steps away. After finishing, E plays again.
+Esc opens the menu (pauses): 1 Resume, 2 Restart (skips the intro), 3 Quit; Esc again resumes.
 In-game: F5 reloads every `config/*.cfg` live (lighting, camera, timings), F3 toggles PLACEHOLDER tags.
 `godot/captures/` is git-ignored scratch space for screenshots.
 
@@ -72,7 +74,7 @@ godot/
   src/game/          main.gd (boot, graphics, debug flags), ProcedureController (model <-> world),
                      InteractionSpot (Area3D + Stand_/Cam_/Approach/Rests markers), WorkBayVisuals (state -> props),
                      ActionPlayer (per-`mechanics` sequences: character clips + prop tweens)
-  src/ui/            Hud (built in code; styled from config/ui.cfg)
+  src/ui/            Hud (built in code; styled from config/ui.cfg), PauseMenu (Esc: resume/restart/quit)
   src/npc/           NpcIdleLoop (bench phone NPC), NpcPatrol (mechanic walking NpcWaypoint stops)
   src/environment/   LightingRig (applies lighting.cfg), LightStrip, HexGrid, shaders/
   src/player/        PlayerController (CharacterBody3D), CameraDirector (follow cam + shot blends + intro)
@@ -128,4 +130,14 @@ timings), `npc`, `ui`, `input`, `assets` (model slots), `game` (which procedure 
   files were not pulled (`git lfs pull`).
 - Mixamo walk/jog clips without In Place are fixed at load: `animation.cfg [locomotion] in_place_clips` lists
   them, `CharacterRig` strips the root bone's travel and measures the stride speed used for playback scaling.
+- Picking up / setting down (`ActionPlayer._take_or_put`, `animation.cfg [pickup]`): `CharacterRig.hand_path()`
+  works out where the hand goes in each pick-up clip from its bone tracks; the clip and moment where the hand
+  best meets the item win, the player walks/turns/steps so it lands there, and the item glides in or out at
+  that moment (`WorkBayVisuals.apply_gliding`). Rigs without a skeleton fall back to the timed `_pickup()`.
+- Carrying: `CarryPose` (a SkeletonModifier3D under the skeleton) holds the arm in a clip frame with the
+  fingers curled into a fist (`animation.cfg [carry]`) while idle/walking with something in hand. Item `Grip`
+  markers are set for that pose (handle across the palm, tool beside the leg).
+- Character AnimationPlayers and skeleton modifiers run on the physics tick, and ActionPlayer tweens use
+  `TWEEN_PROCESS_PHYSICS`: physics interpolation is on, and anything moved in idle frames would jitter. A
+  reparent (e.g. into the hand) calls `reset_physics_interpolation()` so it is a teleport, not a streak.
 - snake_case files and folders, PascalCase node names, typed GDScript.

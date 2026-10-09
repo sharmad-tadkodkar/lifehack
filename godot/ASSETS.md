@@ -262,8 +262,12 @@ are kept here for reference.
 **Shortcut:** in Blender you can import the character and every animation, rename the actions, and export a
 single GLB. The clips then arrive with your names and no library prefix.
 
-**Grip and hold tuning:** held tools sit on the `HandSocket` (a BoneAttachment3D on `hand_bone`). Nudge each
-tool's `Grip` marker until it sits right in the real hand.
+**Grip and hold tuning:** held tools sit on the `HandSocket` (a BoneAttachment3D on `hand_bone`, placed in
+the palm from the finger and thumb bones; `palm_offset` / `palm_depth` in `assets.cfg` move it toward the
+knuckles and out of the palm). While carrying, the arm takes the pose in `animation.cfg [carry]` and the
+fingers close into a fist, so set each tool's `Grip` marker for that pose: its frame is the hand's
+(-Y toward the fingers, -Z toward the thumb, +X the back of the hand), and the handle should run along Z,
+across the palm. Pick-ups need no tuning: the game works out from each clip when the hand is nearest.
 
 ## 9. Textures (Poly Haven, CC0)
 

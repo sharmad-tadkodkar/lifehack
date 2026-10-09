@@ -64,14 +64,20 @@ func face_direction(direction: Vector3, delta := 0.0) -> void:
 
 ## Walks (on its own, with collisions) to a marker, then settles exactly on it.
 func walk_to(marker: Node3D) -> void:
-	_auto_target = marker.global_position
+	await approach(marker.global_position, float(_cfg.timeout))
+	snap_to(marker)
+
+
+## Walks (on its own, with collisions) toward `point` and stops on arrival or after `timeout`
+## seconds (e.g. when something is in the way), wherever it got to.
+func approach(point: Vector3, timeout: float) -> void:
+	_auto_target = point
 	_auto_active = true
 	var waited := 0.0
-	while _auto_active and waited < float(_cfg.timeout):
+	while _auto_active and waited < timeout:
 		await get_tree().physics_frame
 		waited += get_physics_process_delta_time() * Engine.time_scale
 	_auto_active = false
-	snap_to(marker)
 
 
 ## Puts the player on a stand marker, facing along the marker's -Z.

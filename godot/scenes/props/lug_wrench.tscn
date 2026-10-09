@@ -10,5 +10,5 @@ slot = "lug_wrench"
 [node name="Model" parent="." instance=ExtResource("2_placeholder_lug_wrench")]
 
 [node name="Grip" type="Marker3D" parent="."]
-position = Vector3(0.27, 0, 0.3)
-rotation = Vector3(0, 0, 1.5708)
+position = Vector3(0.22, 0, 0.2945)
+rotation = Vector3(0, -1.5708, -0.90954)

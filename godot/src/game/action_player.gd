@@ -35,7 +35,7 @@ func play(result: StepResult) -> void:
 			await _pattern_nut(result)
 		StepResult.Kind.TAKE, StepResult.Kind.PUT:
 			if result.ok:
-				await _pickup()
+				await _take_or_put(result)
 			else:
 				await _mistake()
 	visuals.apply()
@@ -188,6 +188,79 @@ func _pattern_nut(result: StepResult) -> void:
 		player.rig.play("kneel_idle")
 
 
+## Picking something up or setting it down (animation.cfg [pickup]). Uses whichever pick-up clip
+## brings the hand closest to the item (or the place it goes). The player walks up if it is out
+## of reach, then turns and steps so the hand meets it; at that moment of the clip the item glides
+## into the hand (or out of it onto its rest) and the clip plays back to standing.
+## Rigs without a skeleton use the simple timed _pickup().
+func _take_or_put(result: StepResult) -> void:
+	var cfg := Config.section("animation", "pickup")
+	var target := visuals.reach_point(result.action_id)
+	var plan := _plan_reach(cfg, target)
+	if plan.is_empty():
+		await _pickup()
+		return
+	var rig := player.rig
+	if (plan.to as Vector3).distance_to(plan.from) > float(cfg.max_step):
+		rig.locomotion_enabled = true
+		await player.approach(plan.to, float(cfg.approach_timeout))
+		rig.locomotion_enabled = false
+		plan = _plan_reach(cfg, target)
+		if plan.is_empty():
+			await _pickup()
+			return
+	var speed := float(cfg.reach_speed)
+	rig.play(plan.clip, -1.0, speed)
+	var to: Vector3 = (plan.from as Vector3).move_toward(plan.to, float(cfg.max_step))
+	var setup := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	setup.tween_method(func(t: float) -> void:
+		player.global_position = (plan.from as Vector3).lerp(to, t)
+		rig.rotation.y = lerp_angle(plan.yaw_from, plan.yaw, t), 0.0, 1.0, maxf(cfg.setup_time, 0.01)) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await get_tree().create_timer(maxf(plan.time / speed, float(cfg.setup_time)), false).timeout
+	visuals.apply_gliding(cfg.glide_time)
+	rig.reverse(cfg.return_speed)
+	await get_tree().create_timer(maxf(plan.time / float(cfg.return_speed), float(cfg.glide_time)), false).timeout
+	rig.play("idle")
+
+
+## Which pick-up clip and moment of it to use, and where to stand and face so the hand meets
+## `target`. Scores every sampled hand position of every [pickup] clips entry by its height
+## mismatch plus step_cost per metre the player would have to move. The spot to stand on stops
+## short of anything solid (the car, the cart) on the way.
+func _plan_reach(cfg: Dictionary, target: Vector3) -> Dictionary:
+	var rig := player.rig
+	var body := player.global_position
+	var to_target := Vector3(target.x - body.x, 0.0, target.z - body.z)
+	if to_target.length() < 0.001:
+		return {}
+	var height := target.y - body.y - rig.position.y
+	var best := {}
+	var best_cost := INF
+	for logical: String in cfg.clips:
+		for sample: Array in rig.hand_path(logical, int(cfg.path_samples)):
+			var hand: Vector3 = sample[1]
+			var step := to_target.length() - Vector2(hand.x, hand.z).length()
+			var cost := absf(hand.y - height) + absf(step) * float(cfg.step_cost)
+			if cost < best_cost - 0.001:
+				best_cost = cost
+				best = {"clip": logical, "time": float(sample[0]), "hand": hand, "step": step}
+	if best.is_empty():
+		return {}
+	var hand: Vector3 = best.hand
+	var direction := to_target.normalized()
+	var motion := direction * float(best.step)
+	var hit := player.move_and_collide(motion, true)
+	if hit:
+		motion = hit.get_travel()
+	best.from = body
+	best.to = body + motion
+	best.yaw_from = rig.rotation.y
+	best.yaw = atan2(-direction.x, -direction.z) - atan2(-hand.x, -hand.z)
+	return best
+
+
+## Fallback for rigs without a skeleton: the item jumps to the hand on the pick-up beat.
 func _pickup() -> void:
 	var clip := "pick_up"
 	player.rig.play(clip)
@@ -274,14 +347,15 @@ func _drop_nut_to_pile(i: int) -> void:
 	var nut := car().nuts[i]
 	var from := nut.global_transform
 	var to := visuals.nut_pile_transform(i)
-	var tween := create_tween()
+	var tween := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tween.tween_method(func(t: float) -> void:
 		var xform := from.interpolate_with(to, t)
 		xform.origin.y += sin(t * PI) * 0.08
 		visuals.attach_global(nut, xform), 0.0, 1.0, 0.3)
 
 
+## Mechanical motion runs on the physics tick so physics interpolation smooths it like the body.
 func _tween_method(method: Callable, from: float, to: float, seconds: float) -> void:
-	var tween := create_tween()
+	var tween := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tween.tween_method(method, from, to, maxf(seconds, 0.01)).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	await tween.finished

@@ -6,6 +6,8 @@ extends Node
 ## is shown (HUD) and played out (WorkBayVisuals -> ActionPlayer).
 
 signal finished
+## E pressed on the end summary.
+signal play_again_requested
 
 @export var player: PlayerController
 @export var director: CameraDirector
@@ -53,7 +55,7 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if model.is_complete() and not running:
 		if event.is_action_pressed(&"interact"):
-			get_tree().reload_current_scene()
+			play_again_requested.emit()
 		return
 	if not running or busy or autoplaying:
 		return

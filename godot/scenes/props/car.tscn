@@ -125,9 +125,9 @@ fov = 50
 [node name="trunk" type="Node3D" parent="Spots/TrunkSpot/Rests"]
 
 [node name="spare" type="Marker3D" parent="Spots/TrunkSpot/Rests/trunk"]
-position = Vector3(0, 0.45, -1.25)
+position = Vector3(0, 0.45, -0.95)
 rotation = Vector3(0, 0, 1.5708)
 
 [node name="drop" type="Marker3D" parent="Spots/TrunkSpot/Rests/trunk"]
-position = Vector3(0.35, 0.45, -1.2)
+position = Vector3(0.45, 0.45, -0.85)
 rotation = Vector3(0, 0, 0)

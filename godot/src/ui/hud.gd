@@ -60,7 +60,7 @@ func show_title(on: bool) -> void:
 
 
 func update_status(model: ProcedureModel, seconds: float) -> void:
-	_status.text = "%s\nSTEPS  %d / %d\nTIME   %s\nMISTAKES  %d" % [
+	_status.text = "%s\nSTEPS  %d / %d\nTIME   %s\nMISTAKES  %d\n\nESC  MENU" % [
 		model.data.title.to_upper(), model.completed.size(), model.data.steps.size(),
 		format_time(seconds), model.mistakes.size()]
 	var held := model.held_item()
@@ -122,6 +122,7 @@ func show_summary(model: ProcedureModel, seconds: float) -> void:
 			line.custom_minimum_size.x = 640
 			_summary_body.add_child(line)
 	_summary_body.add_child(_label("E   play again", _s.body, _c.accent, true))
+	_summary_body.add_child(_label("ESC   menu", _s.body, _c.dim, true))
 	_summary.visible = true
 
 

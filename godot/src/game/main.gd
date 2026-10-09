@@ -10,6 +10,7 @@ extends Node
 ##   --menu=<location>   open the action menu at that location (wheel, jack_point, trunk, tool_cart)
 ##   --choose=1,2        then pick these menu rows in turn
 ##   --autoplay          the procedure plays itself, start to finish (the real order, from the JSON)
+##   --pause-menu        open the Esc menu once the game has started
 
 const SCALING_MODES := {
 	"bilinear": Viewport.SCALING_3D_MODE_BILINEAR,
@@ -17,12 +18,16 @@ const SCALING_MODES := {
 	"fsr2": Viewport.SCALING_3D_MODE_FSR2,
 }
 
+## Set by restart(): the reloaded scene starts without the intro.
+static var _skip_intro_once := false
+
 var debug_args: Dictionary = {}
 
 @onready var player: PlayerController = $Player
 @onready var director: CameraDirector = $CameraDirector
 @onready var procedure: ProcedureController = $ProcedureController
 @onready var hud: Hud = $Hud
+@onready var pause_menu: PauseMenu = $PauseMenu
 
 
 func _ready() -> void:
@@ -35,7 +40,17 @@ func _ready() -> void:
 		_add_lookdev_camera()
 	for action in str(debug_args.get("hold", "")).split(",", false):
 		Input.action_press(action)
+	pause_menu.restart_requested.connect(restart)
+	pause_menu.quit_requested.connect(get_tree().quit)
+	procedure.play_again_requested.connect(restart)
 	_start()
+
+
+## Starts the game over from the beginning (Esc menu Restart, or E after finishing).
+func restart() -> void:
+	_skip_intro_once = true
+	get_tree().paused = false
+	get_tree().reload_current_scene()
 
 
 func _start() -> void:
@@ -44,7 +59,8 @@ func _start() -> void:
 	player.face_direction(car.global_position - player.global_position)
 	director.set_follow_yaw(player.facing_yaw())
 	director.snap_to_target()
-	var skip: bool = debug_args.has("skip-intro") or not Config.v("camera", "intro", "enabled")
+	var skip: bool = _skip_intro_once or debug_args.has("skip-intro") or not Config.v("camera", "intro", "enabled")
+	_skip_intro_once = false
 	if not skip:
 		hud.show_title(true)
 		director.play_intro($Shots/IntroStart, $Shots/IntroEnd,
@@ -66,12 +82,17 @@ func _debug_procedure() -> void:
 		await procedure.debug_open(debug_args["menu"])
 	for pick in str(debug_args.get("choose", "")).split(",", false):
 		await procedure.choose(int(pick) - 1)
+	if debug_args.has("pause-menu"):
+		pause_menu.open()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Any key or click during the intro skips it.
 	if director.is_in_intro() and (event is InputEventKey or event is InputEventMouseButton) and event.is_pressed():
 		director.skip_intro()
+	elif event.is_action_pressed(&"pause"):
+		get_viewport().set_input_as_handled()
+		pause_menu.open()
 
 
 func _parse_user_args() -> Dictionary:
