@@ -39,6 +39,9 @@ func _initialize() -> void:
 		if file_name.get_extension().to_lower() != "fbx":
 			continue
 		var path := MODELS + file_name
+		if _already_set_up(path):
+			print("[mixamo] %s: already set up" % file_name)
+			continue
 		var info := _inspect(path)
 		if info.is_empty():
 			print("[mixamo] skip %s (no Mixamo skeleton)" % file_name)
@@ -57,6 +60,14 @@ func _loop_files() -> Array:
 	var cfg := ConfigFile.new()
 	cfg.load("res://config/animation.cfg")
 	return cfg.get_value("mixamo_import", "loop_files", [])
+
+
+func _already_set_up(path: String) -> bool:
+	var cfg := ConfigFile.new()
+	if cfg.load(path + ".import") != OK:
+		return false
+	var nodes: Dictionary = cfg.get_value("params", "_subresources", {}).get("nodes", {})
+	return nodes.get("PATH:Skeleton3D", {}).has("retarget/bone_map")
 
 
 ## Reads the source FBX scene (as currently imported) for its skeleton prefix and whether it has a mesh.

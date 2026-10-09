@@ -81,7 +81,7 @@ godot/
   tools/             build_placeholder_anims.gd → regenerates placeholders/placeholder_character_anims.tres
                      setup_mixamo.gd → retarget + import settings for Mixamo FBX in assets/models (re-run after adding)
   assets/models/     real models (Hoonicorn, bottle jack, cross wrench, rims kit, Mixamo characters + clips);
-                     assets/textures/ Poly Haven floor. Binaries are NOT in git yet (one file is >100 MB).
+                     assets/textures/ Poly Haven floor. Binaries are in Git LFS (see .gitattributes).
   scenes/
     main.tscn                      Garage + WorkBay (hero car) + Player + CameraDirector + Shots (intro cams)
     characters/player.tscn         CharacterBody3D + CharacterRig slot
@@ -124,6 +124,8 @@ timings), `npc`, `ui`, `input`, `assets` (model slots), `game` (which procedure 
   (`WorkBayVisuals.settle`); rest markers mark the surface height, not the item's centre.
 - Clip maps support fallbacks (`"standard_walk/mixamo_com|shrugging/mixamo_com@0|walk"`): the first clip the
   model has wins, and the last entry is the placeholder's name, so the same map works for both.
-- `test_assets` asserts the configured real models are actually in use; it fails on a clone without the
-  asset binaries (expected).
+- `test_assets` asserts the configured real models are actually in use; it fails on a clone whose LFS
+  files were not pulled (`git lfs pull`).
+- Mixamo walk/jog clips without In Place are fixed at load: `animation.cfg [locomotion] in_place_clips` lists
+  them, `CharacterRig` strips the root bone's travel and measures the stride speed used for playback scaling.
 - snake_case files and folders, PascalCase node names, typed GDScript.

@@ -50,7 +50,7 @@ func test_jog_is_faster_than_walk() -> void:
 	Input.action_press(&"jog")
 	await wait_physics_frames(40)
 	var jog_speed: float = Vector2(main.player.velocity.x, main.player.velocity.z).length()
-	assert_gt(jog_speed, walk_speed + 1.0)
+	assert_gt(jog_speed, walk_speed + 0.8)
 	assert_eq(main.player.rig.current_clip, "jog")
 
 

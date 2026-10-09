@@ -17,6 +17,8 @@ var _loc := {}
 var _blend_default := 0.2
 var _blend_locomotion := 0.2
 var _missing_reported := {}
+## clip -> ground speed (m/s) its stride covers at 1x, measured from clips made in place
+var _stride_speed := {}
 
 
 func _bind() -> void:
@@ -28,6 +30,7 @@ func _bind() -> void:
 	else:
 		anim = players[0]
 		_load_animation_libraries()
+		_make_clips_in_place()
 	hand_socket = _make_hand_socket()
 	_load_config()
 	Config.reloaded.connect(_load_config)
@@ -59,6 +62,64 @@ func _load_animation_libraries() -> void:
 		var library := load(dir.path_join(source)) as AnimationLibrary
 		if library and not anim.has_animation_library(lib_name):
 			anim.add_animation_library(lib_name, library)
+
+
+## Mixamo walk/jog clips downloaded without "In Place" carry the character forward and snap back
+## every loop. For each clip in animation.cfg [locomotion] in_place_clips this removes the root
+## bone's steady travel (keeping its sway) and records how fast the stride moves, so set_locomotion()
+## can match playback to ground speed. Clips already in place are left as they are.
+func _make_clips_in_place() -> void:
+	if using_placeholder:
+		return
+	var skeletons := model.find_children("*", "Skeleton3D", true, false)
+	if skeletons.is_empty():
+		return
+	var skeleton := skeletons[0] as Skeleton3D
+	var bone := str(Config.v("animation", "locomotion", "root_bone"))
+	for clip: String in Config.v("animation", "locomotion", "in_place_clips"):
+		if not anim.has_animation(clip):
+			continue
+		var animation := anim.get_animation(clip)
+		# libraries are shared resources: strip once, remember the travel for the other characters
+		if not animation.has_meta(&"root_travel"):
+			animation.set_meta(&"root_travel", strip_root_travel(animation, bone))
+		var travel: Vector3 = animation.get_meta(&"root_travel")
+		var world := travel.length() * skeleton.motion_scale * skeleton.global_basis.get_scale().x
+		if world > 0.0 and animation.length > 0.0:
+			_stride_speed[clip] = world / animation.length
+
+
+## Removes the horizontal drift of `bone`'s position track (start to end, spread linearly over the
+## keys) so the clip loops in place. Returns the drift that was removed, in track units.
+static func strip_root_travel(animation: Animation, bone: String) -> Vector3:
+	for track in animation.get_track_count():
+		if animation.track_get_type(track) != Animation.TYPE_POSITION_3D:
+			continue
+		if str(animation.track_get_path(track).get_concatenated_subnames()) != bone:
+			continue
+		var count := animation.track_get_key_count(track)
+		if count < 2:
+			return Vector3.ZERO
+		var start: float = animation.track_get_key_time(track, 0)
+		var span: float = animation.track_get_key_time(track, count - 1) - start
+		var travel: Vector3 = animation.track_get_key_value(track, count - 1) - animation.track_get_key_value(track, 0)
+		travel.y = 0.0
+		if span <= 0.0:
+			return Vector3.ZERO
+		for key in count:
+			var along: float = (animation.track_get_key_time(track, key) - start) / span
+			animation.track_set_key_value(track, key, animation.track_get_key_value(track, key) - travel * along)
+		return travel
+	return Vector3.ZERO
+
+
+## Ground speed (m/s) at which a locomotion clip plays at 1x: measured from the clip when it was
+## made in place, otherwise animation.cfg [locomotion] <logical>_clip_speed.
+func stride_speed(logical: String) -> float:
+	var measured: float = _stride_speed.get(clip_for(logical), 0.0)
+	if measured >= float(_loc.min_measured_stride):
+		return measured
+	return float(_loc[logical + "_clip_speed"])
 
 
 ## The model's clip for a logical name. Map values may carry a speed: "kneeling_down/mixamo_com@-1"
@@ -132,10 +193,10 @@ func set_locomotion(ground_speed: float) -> void:
 	var scale := 1.0
 	if ground_speed >= _loc.jog_above:
 		want = "jog"
-		scale = ground_speed / _loc.jog_clip_speed
+		scale = ground_speed / stride_speed("jog")
 	elif ground_speed >= _loc.idle_below:
 		want = "walk"
-		scale = ground_speed / _loc.walk_clip_speed
+		scale = ground_speed / stride_speed("walk")
 	if want != current_clip:
 		play(want, _blend_locomotion)
 	anim.speed_scale = clampf(scale, _loc.min_playback_scale, _loc.max_playback_scale) if want != "idle" else 1.0

@@ -71,6 +71,36 @@ func test_work_clips_come_from_mixamo() -> void:
 	assert_eq(phone.clip_for("lean_phone"), "texting_while_standing/mixamo_com")
 
 
+func test_locomotion_clips_loop_in_place_at_a_walking_pace() -> void:
+	var bone := str(Config.v("animation", "locomotion", "root_bone"))
+	for path in ["Player/CharacterRig", "Garage/NPCs/NpcMechanic/CharacterRig"]:
+		var rig: CharacterRig = main.get_node(path)
+		for logical in ["walk", "jog"]:
+			var animation := rig.anim.get_animation(rig.clip_for(logical))
+			var track := animation.find_track(NodePath("%GeneralSkeleton:" + bone), Animation.TYPE_POSITION_3D)
+			assert_gt(track, -1, "%s %s has a root track" % [path, logical])
+			var drift := animation.position_track_interpolate(track, animation.length) \
+				- animation.position_track_interpolate(track, 0.0)
+			assert_lt(Vector2(drift.x, drift.z).length(), 0.01, "%s %s loops in place" % [path, logical])
+			var speed := rig.stride_speed(logical)
+			assert_between(speed, 0.8, 3.0, "%s %s stride speed (m/s)" % [path, logical])
+			gut.p("%s %s: stride %.2f m/s" % [path, logical, speed])
+
+
+func test_strip_root_travel_keeps_the_sway() -> void:
+	var animation := Animation.new()
+	animation.length = 1.0
+	var track := animation.add_track(Animation.TYPE_POSITION_3D)
+	animation.track_set_path(track, NodePath("%GeneralSkeleton:Hips"))
+	animation.position_track_insert_key(track, 0.0, Vector3(0.0, 1.0, 0.0))
+	animation.position_track_insert_key(track, 0.5, Vector3(0.1, 0.9, 1.0))
+	animation.position_track_insert_key(track, 1.0, Vector3(0.0, 1.0, 2.0))
+	var travel := CharacterRig.strip_root_travel(animation, "Hips")
+	assert_eq(travel, Vector3(0.0, 0.0, 2.0))
+	assert_eq(animation.track_get_key_value(track, 1), Vector3(0.1, 0.9, 0.0), "side sway and bob stay")
+	assert_eq(animation.track_get_key_value(track, 2), Vector3(0.0, 1.0, 0.0))
+
+
 func test_reports_clips_still_on_stopgaps() -> void:
 	# Not a failure: lists logical clips whose Mixamo file has not been downloaded yet.
 	var rig: CharacterRig = main.get_node("Player/CharacterRig")

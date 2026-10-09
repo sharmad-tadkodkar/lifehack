@@ -9,26 +9,29 @@
 | Jack | **Hydraulic (bottle) jack** | `lift_mode="translate"`: piston + screw slide up; handle pose borrowed from the model's own animation |
 | Lug wrench | **Cross wheel spanner** | Scaled 1.9 (modelled at half size), socket shifted to the origin |
 | Player / bench NPC / mechanic | **character.fbx / character-2.fbx / character-3.fbx** (Mixamo) | Retargeted to Godot's humanoid skeleton by `tools/setup_mixamo.gd`; hand socket derived from the hand bones |
-| Animations | Kneeling Down/Idle/Inspecting, Picking Up, Pull Heavy Object, Pulling Lever, Pushing, Shrugging, Standing Torch Inspect Upward, Texting While Standing | Imported as AnimationLibraries, loaded from `assets/models` |
+| Animations | 18 Mixamo clips (Breathing Idle, Standard Walk, Jogging, Kneeling Down/Idle/Inspecting, Plant A Plant, Pulling Lever, Working On Device, Pull Heavy Object, Pushing, Picking Up, Shrugging, Texting While Standing, Looking Around, Weight Shift, Standing Torch Inspect Upward, Reaching Out) | Imported as AnimationLibraries, loaded from `assets/models`. Standard Walk and Jogging were downloaded without In Place: `CharacterRig` removes their forward travel at load and measures their stride speed (walk 1.46 m/s, jog 1.85 m/s) to keep the feet planted. |
 | Floor | **Poly Haven Garage Floor** (diffuse + displacement) | The 4K normal/roughness EXRs use DWA compression Godot can't read: normals come from the displacement map, roughness stays procedural. PNG versions of those two maps would plug straight in. |
 | Lug nuts, tool cart, phone, garage props, wall/door textures | placeholders | not supplied yet |
 
-**Still missing from Mixamo** (`godot/run_tests.sh` lists these in `test_assets`): **Breathing Idle**, **Standard Walk**,
-**Jogging** (until then idle/walk/jog hold a neutral pose), **Plant A Plant**, **Working On Device**, **Looking Around**,
-**Idle** (Weight Shift), **Reaching Out** (these fall back to similar clips). Drop the FBX files (Without Skin, In Place for
-walk/jog) into `godot/assets/models/`, then run:
+The model and texture binaries are stored in **Git LFS** (`.gitattributes` at the repo root), so a clone needs
+`brew install git-lfs` and `git lfs install` before `git clone` / `git lfs pull`.
+
+**Adding more Mixamo clips:** drop the FBX files (Without Skin) into `godot/assets/models/`, then run:
 
 ```bash
+godot --headless --path godot --import
 godot --headless --path godot -s res://tools/setup_mixamo.gd
 godot --headless --path godot --import
 godot/run_tests.sh
 ```
 
-The clip maps in `config/animation.cfg` already name these files first, so nothing else needs editing.
+The first import lets the tool read the new files' skeletons; the second applies the retarget. A clip is
+named after its file (`"Weight Shift.fbx"` -> `weight_shift/mixamo_com`); map it in `config/animation.cfg`,
+and add looping clips to `[mixamo_import] loop_files` before running the tool. A new locomotion clip that
+was downloaded without In Place goes in `[locomotion] in_place_clips`.
 
-Everything you see in the garage right now is a **placeholder**: simple shapes with real materials,
-there only so the lighting, animation and gameplay can be built and judged. Press **F3** in-game to tag
-every placeholder that is still on screen.
+Anything still tagged **PLACEHOLDER** (press **F3** in-game) is a simple shape with real materials, there
+so the lighting, animation and gameplay can be built and judged until a real model replaces it.
 
 Real assets plug in **without code changes**:
 
@@ -172,7 +175,8 @@ Pick by look; any Mixamo character works the same way.
 **Download the character once:** Format **FBX Binary (.fbx)**, Pose **T-pose**, **With Skin**.
 
 **Download each animation:** Format **FBX Binary**, **Without Skin**, **30 fps**, Keyframe Reduction **none**.
-Tick **In Place** on walking and jogging clips; the game moves the body itself.
+Tick **In Place** on walking and jogging clips; the game moves the body itself. (Clips downloaded
+without it still work: list them in `animation.cfg [locomotion] in_place_clips`.)
 
 ### Which Mixamo clips to download
 
@@ -204,7 +208,7 @@ same name, the description tells you which one. Loop = set *Loop Mode: Linear* i
 |---|---|---|
 | `lean_phone` | **Texting While Standing** ("Texting On A Smart Phone While Standing"), or **Leaning** ("Leaning Square With Shoulders Against A Wall") for a pure lean | ✓ |
 | `lean_glance` | **Looking Around** ("Idle Stand Looking Around") | |
-| `shift_weight` | **Idle** (the "Weight Shift Idle" variant) | |
+| `shift_weight` | **Weight Shift** (the "Weight Shift Idle" variant) | |
 | `idle` | **Breathing Idle** | ✓ |
 
 **Mechanic** (`[clips.npc_mechanic]`):
