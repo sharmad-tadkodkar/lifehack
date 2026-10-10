@@ -27,6 +27,7 @@ var _nearby: Array[InteractionSpot] = []
 var _spot: InteractionSpot
 var _location := ""
 var _actions: Array[Dictionary] = []
+var _narrator: Narrator
 
 
 func _ready() -> void:
@@ -34,6 +35,7 @@ func _ready() -> void:
 	if not data.is_valid():
 		push_error("[procedure] invalid procedure data:\n" + "\n".join(data.errors))
 	model = ProcedureModel.new(data)
+	_narrator = Narrator.new(data)
 	visuals.setup(model)
 	for spot: InteractionSpot in get_tree().get_nodes_in_group(&"interaction_spot"):
 		spot.player_entered.connect(_on_spot_entered)
@@ -42,6 +44,7 @@ func _ready() -> void:
 
 func start() -> void:
 	running = true
+	Sfx.say(_narrator.intro())
 	hud.update_status(model, elapsed)
 	_refresh_prompt()
 
@@ -77,6 +80,7 @@ func open_menu(spot: InteractionSpot = null) -> void:
 	menu_open = true
 	busy = true
 	player.controls_enabled = false
+	Sfx.play_ui("ui_move")
 	hud.show_prompt("")
 	await _stage(_spot.primary_location())
 	busy = false
@@ -107,6 +111,7 @@ func current_actions() -> Array[Dictionary]:
 func choose(index: int) -> void:
 	if busy:
 		return
+	Sfx.play_ui("ui_select")
 	if model.pattern_active:
 		if index < model.data.nut_count:
 			await perform_nut(index)
@@ -155,9 +160,14 @@ func _present(result: StepResult) -> void:
 	hud.hide_menu()
 	if not result.ok:
 		hud.toast(result)
+		Sfx.play("bad")
+		Sfx.say(_narrator.line_for(result))
 	await visuals.present(result)
 	if result.ok:
 		hud.toast(result)
+		if result.completes_step:
+			Sfx.play("good")
+		Sfx.say(_narrator.line_for(result))
 	hud.update_status(model, elapsed)
 	busy = false
 	if model.is_complete():
@@ -171,6 +181,9 @@ func _finish() -> void:
 	menu_open = false
 	hud.hide_menu()
 	hud.show_summary(model, elapsed)
+	Sfx.play("stamp")
+	Sfx.play("fanfare")
+	Sfx.say(_narrator.finish(model.mistakes.size()))
 	if outro_shot:
 		director.blend_to(outro_shot, Config.v("camera", "intro", "handoff"))
 	else:

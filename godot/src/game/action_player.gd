@@ -77,6 +77,8 @@ func _loosen_nuts() -> void:
 	player.rig.play(_clip(1))
 	var backout := float(_m.nut_backout)
 	for i in car().nuts.size():
+		Sfx.play("nut_crack", car().nuts[i])
+		Sfx.play("ratchet", car().nuts[i])
 		await _turn_nut(i, -deg_to_rad(_m.nut_turn_deg), backout, _m.nut_turn_time)
 	await _stand(_clip(2))
 
@@ -89,11 +91,14 @@ func _raise_car() -> void:
 	var start := jack.global_transform
 	await _tween_method(func(t: float) -> void:
 		visuals.attach_global(jack, start.interpolate_with(under, t)), 0.0, 1.0, _m.jack_roll_time)
+	Sfx.play("jack_place", jack)
 	await _stand(_clip(2))
 	player.rig.play(_clip(3))
 	var strokes := int(_m.jack_pump_strokes)
 	var stroke := float(_m.jack_stroke_time)
 	for k in strokes:
+		Sfx.play("jack_pump", jack)
+		Sfx.play("car_creak", car().hub, 1.0 + 0.05 * k)
 		await _tween_method(jack.set_pump, 0.0, 1.0, stroke * 0.5)
 		var from := float(k) / strokes
 		var to := float(k + 1) / strokes
@@ -111,18 +116,21 @@ func _remove_wheel() -> void:
 	var spin := TAU * float(_m.unscrew_turns)
 	var off := float(_m.nut_backout) + float(_m.thread_length)
 	for i in car().nuts.size():
+		Sfx.play("nut_spin", car().nuts[i])
 		await _turn_nut(i, -spin, off, _m.unscrew_time)
 		_drop_nut_to_pile(i)
 	visuals.place_item("lug_wrench", Inventory.HANDS)
 	player.rig.play(_clip(2))
 	var wheel := car().flat_wheel
 	var slid := car().flat_wheel_rest.translated(Vector3(_m.wheel_slide_distance, 0.0, 0.0))
+	Sfx.play("wheel_slide", wheel)
 	await _tween_method(func(t: float) -> void:
 		wheel.transform = car().flat_wheel_rest.interpolate_with(slid, t), 0.0, 1.0, _m.wheel_slide_time)
 	var lifted := wheel.global_transform
 	var rest := visuals.rest_transform("flat", "wheel")
 	await _tween_method(func(t: float) -> void:
 		visuals.attach_global(wheel, lifted.interpolate_with(rest, t)), 0.0, 1.0, _m.wheel_lay_time)
+	Sfx.play("wheel_thud", wheel)
 	await _stand(_clip(3))
 
 
@@ -135,8 +143,10 @@ func _fit_spare() -> void:
 	var start := spare.global_transform
 	await _tween_method(func(t: float) -> void:
 		visuals.attach_global(spare, start.interpolate_with(lined_up, t)), 0.0, 1.0, _m.fit_time * 0.5)
+	Sfx.play("wheel_slide", spare, 1.1)
 	await _tween_method(func(t: float) -> void:
 		visuals.attach_global(spare, lined_up.interpolate_with(hub, t)), 0.0, 1.0, _m.fit_time)
+	Sfx.play("nut_seat", spare, 0.7)
 	await _stand(_clip(2))
 
 
@@ -152,6 +162,7 @@ func _hand_tighten() -> void:
 		await _tween_method(func(t: float) -> void:
 			visuals.attach_global(nut, from.interpolate_with(start, t)), 0.0, 1.0, _m.thread_time * 0.5)
 		visuals.attach(nut, car().hub, start_local)
+		Sfx.play("nut_thread", nut)
 		var spin := TAU * float(_m.unscrew_turns)
 		await _tween_method(func(t: float) -> void:
 			nut.position = car().nut_seat(i, out * (1.0 - t))
@@ -163,9 +174,12 @@ func _lower_car() -> void:
 	var jack := visuals.jack
 	player.rig.play(_clip(0))
 	await get_tree().create_timer(0.4, false).timeout
+	Sfx.play("valve_hiss", jack)
+	Sfx.play("car_creak", car().hub, 0.85)
 	await _tween_method(func(t: float) -> void:
 		car().set_raise(1.0 - t)
 		jack.set_lift(1.0 - t), 0.0, 1.0, _m.lower_time)
+	Sfx.play("car_settle", car().hub)
 	var under := jack.global_transform
 	var rest := visuals.rest_transform("jack", "jack_point")
 	await _tween_method(func(t: float) -> void:
@@ -180,7 +194,9 @@ func _pattern_nut(result: StepResult) -> void:
 		return
 	await _glide_wrench_to(result.nut)
 	player.rig.play(_clip(1))
+	Sfx.play("ratchet", car().nuts[result.nut])
 	await _turn_nut(result.nut, deg_to_rad(_m.nut_turn_deg), 0.0, _m.nut_turn_time)
+	Sfx.play("nut_seat", car().nuts[result.nut])
 	if result.completes_step:
 		visuals.place_item("lug_wrench", Inventory.HANDS)
 		await _stand(_clip(2))
@@ -218,6 +234,7 @@ func _take_or_put(result: StepResult) -> void:
 		rig.rotation.y = lerp_angle(plan.yaw_from, plan.yaw, t), 0.0, 1.0, maxf(cfg.setup_time, 0.01)) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	await get_tree().create_timer(maxf(plan.time / speed, float(cfg.setup_time)), false).timeout
+	Sfx.play("pickup" if result.kind == StepResult.Kind.TAKE else "putdown", player)
 	visuals.apply_gliding(cfg.glide_time)
 	rig.reverse(cfg.return_speed)
 	await get_tree().create_timer(maxf(plan.time / float(cfg.return_speed), float(cfg.glide_time)), false).timeout
@@ -265,6 +282,7 @@ func _pickup() -> void:
 	var clip := "pick_up"
 	player.rig.play(clip)
 	await get_tree().create_timer(_m.pickup_time, false).timeout
+	Sfx.play("pickup", player)
 	visuals.apply()
 	var length := player.rig.clip_length(clip)
 	await get_tree().create_timer(maxf(length - float(_m.pickup_time), 0.0), false).timeout
@@ -352,6 +370,7 @@ func _drop_nut_to_pile(i: int) -> void:
 		var xform := from.interpolate_with(to, t)
 		xform.origin.y += sin(t * PI) * 0.08
 		visuals.attach_global(nut, xform), 0.0, 1.0, 0.3)
+	tween.tween_callback(Sfx.play.bind("nut_drop", nut))
 
 
 ## Mechanical motion runs on the physics tick so physics interpolation smooths it like the body.

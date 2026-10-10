@@ -15,6 +15,8 @@ var initial_state: Dictionary = {}
 var items: Dictionary = {}
 var locations: Dictionary = {}
 var messages: Dictionary = {}
+## Narrator lines (intro, mistake openers, finish lines...); see Narrator.
+var narration: Dictionary = {}
 var steps: Array[Dictionary] = []
 var errors: PackedStringArray = []
 
@@ -78,6 +80,8 @@ func _read(source: Dictionary) -> void:
 	items = source.get("items", {})
 	locations = source.get("locations", {})
 	messages = source.get("messages", {})
+	narration = source.get("narration", {})
+	_validate_narration()
 	for key in ["id", "initial_state", "items", "locations", "steps"]:
 		if not source.has(key):
 			errors.append("missing top-level '%s'" % key)
@@ -143,3 +147,14 @@ func _validate_step(s: Dictionary) -> void:
 		errors.append("step %s: unknown pattern '%s'" % [sid, s.pattern.get("type", "")])
 	if tool != null and str(s.get("wrong_tool", "")) == "":
 		errors.append("step %s: needs wrong_tool text" % sid)
+
+
+func _validate_narration() -> void:
+	for key in ["intro", "mistake_openers", "wrong_tool_openers", "success_tags"]:
+		var lines: Variant = narration.get(key, [])
+		if typeof(lines) != TYPE_ARRAY or (lines as Array).is_empty():
+			errors.append("narration.%s must be a non-empty list of lines" % key)
+	var finish: Variant = narration.get("finish", {})
+	for key in ["clean", "few", "many"]:
+		if typeof(finish) != TYPE_DICTIONARY or typeof(finish.get(key)) != TYPE_ARRAY or (finish[key] as Array).is_empty():
+			errors.append("narration.finish.%s must be a non-empty list of lines" % key)

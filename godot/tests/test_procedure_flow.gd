@@ -99,8 +99,19 @@ func test_a_wrong_choice_is_explained_and_changes_nothing() -> void:
 
 
 func test_autoplay_finishes_the_procedure_cleanly() -> void:
+	Sfx.played.clear()
+	Sfx.spoken.clear()
 	await pc.autoplay()
 	assert_true(pc.model.is_complete())
 	assert_eq(pc.model.mistakes.size(), 0)
 	assert_eq(car.raise_amount, 0.0)
 	assert_eq(visuals.spare.get_parent(), car.hub)
+	# the four actions with their own sounds, and the narrator on every step
+	var nuts := pc.model.data.nut_count
+	assert_eq(Sfx.played.count("nut_crack"), nuts, "loosening: a crack per nut")
+	assert_gte(Sfx.played.count("ratchet"), nuts * 2, "loosening + final tightening ratchets")
+	assert_eq(Sfx.played.count("nut_seat"), nuts + 1, "each nut torqued (and the spare seated)")
+	assert_eq(Sfx.played.count("jack_pump"), int(Config.v("animation", "mechanics", "jack_pump_strokes")), "a pump per stroke")
+	assert_eq(Sfx.played.count("valve_hiss"), 1, "lowering opens the valve")
+	assert_eq(Sfx.played.count("car_settle"), 1, "and the car settles")
+	assert_gte(Sfx.spoken.size(), pc.model.data.steps.size(), "the narrator reads every step")

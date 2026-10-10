@@ -42,7 +42,8 @@ variable with `${=args}` (zsh does not word-split `$args`).
 
 Controls: WASD move, Shift jog, mouse orbits (click to capture), any key skips the intro.
 At a spot: E opens the action menu, 1-9 choose, Q steps away. After finishing, E plays again.
-Esc opens the menu (pauses): 1 Resume, 2 Restart (skips the intro), 3 Quit; Esc again resumes.
+Esc opens the menu (pauses): 1 Resume, 2 Restart (skips the intro), 3 Voice on/off, 4 Music on/off, 5 Quit.
+V toggles the narrator voice, M the music (remembered in `user://settings.cfg`).
 In-game: F5 reloads every `config/*.cfg` live (lighting, camera, timings), F3 toggles PLACEHOLDER tags.
 `godot/captures/` is git-ignored scratch space for screenshots.
 
@@ -70,7 +71,8 @@ godot/
                      effects, tool, animations, mechanics, fail text per broken precondition)
   src/core/          PURE LOGIC (RefCounted, no nodes): ProcedureData (load+validate JSON),
                      ProcedureModel (state machine), Inventory (one item in hand), StarPattern, StepResult
-  src/autoload/      Config singleton: Config.v(file, section, key), Config.section(file, section)
+  src/autoload/      Config singleton: Config.v(file, section, key), Config.section(file, section);
+                     Sfx (audio_director.gd): Sfx.play(id, at_node), Sfx.say(text), music/ambience, buses
   src/game/          main.gd (boot, graphics, debug flags), ProcedureController (model <-> world),
                      InteractionSpot (Area3D + Stand_/Cam_/Approach/Rests markers), WorkBayVisuals (state -> props),
                      ActionPlayer (per-`mechanics` sequences: character clips + prop tweens)
@@ -82,6 +84,7 @@ godot/
                      real models via assets.cfg
   tools/             build_placeholder_anims.gd → regenerates placeholders/placeholder_character_anims.tres
                      setup_mixamo.gd → retarget + import settings for Mixamo FBX in assets/models (re-run after adding)
+                     build_audio.gd → synthesizes assets/audio/*.wav (effects, garage hum, music loop)
   assets/models/     real models (Hoonicorn, bottle jack, cross wrench, rims kit, Mixamo characters + clips);
                      assets/textures/ Poly Haven floor. Binaries are in Git LFS (see .gitattributes).
   scenes/
@@ -101,7 +104,7 @@ godot/
 ```
 
 Config files: `graphics` (window/AA), `lighting`, `camera`, `player`, `animation` (clip maps + tween
-timings), `npc`, `ui`, `input`, `assets` (model slots), `game` (which procedure JSON).
+timings), `npc`, `ui`, `input`, `assets` (model slots), `audio` (sound slots, mix, voice), `game` (which procedure JSON).
 
 ### Conventions
 - No magic numbers in scripts: add a key to the right `config/*.cfg` and read it via `Config`.
@@ -140,4 +143,10 @@ timings), `npc`, `ui`, `input`, `assets` (model slots), `game` (which procedure 
 - Character AnimationPlayers and skeleton modifiers run on the physics tick, and ActionPlayer tweens use
   `TWEEN_PROCESS_PHYSICS`: physics interpolation is on, and anything moved in idle frames would jitter. A
   reparent (e.g. into the hand) calls `reset_physics_interpolation()` so it is a teleport, not a streak.
+- Audio: every sound is an `audio.cfg [sfx.<id>]` slot (`file=""` = synthesized `assets/audio/<id>.wav`, regenerate
+  with `godot --headless --path godot -s res://tools/build_audio.gd`). ActionPlayer plays effects positioned at the
+  nut / jack / wheel; `test_audio` fails if code plays an id without a slot. The narrator (OS text-to-speech,
+  `DisplayServer.tts_*`) reads lines chosen by `src/core/narrator.gd` from the JSON's `narration` block (intro, quip
+  openers before mistake consequences, finish lines by mistake count); the music ducks while it speaks.
+  `Sfx.played` / `Sfx.spoken` log what happened (tests read them; TTS is silent headless).
 - snake_case files and folders, PascalCase node names, typed GDScript.

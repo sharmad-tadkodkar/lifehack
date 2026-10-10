@@ -65,7 +65,8 @@ Controls:
 | E | open the action menu at a work spot |
 | 1-9 | choose an action |
 | Q | step away from the spot |
-| Esc | menu: Resume / Restart / Quit |
+| Esc | menu: Resume / Restart / Voice / Music / Quit |
+| V / M | narrator voice on/off / music on/off |
 | F5 / F3 | reload config live / tag placeholder models |
 
 Change the flat in the right order: loosen the nuts, jack the car up, remove the wheel, fit the spare,

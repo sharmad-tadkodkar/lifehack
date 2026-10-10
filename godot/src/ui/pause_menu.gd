@@ -1,13 +1,13 @@
 class_name PauseMenu
 extends CanvasLayer
-## The Esc menu: pauses the game and offers Resume, Restart and Quit. Pick with 1-3, the arrow
-## keys and Enter, or the mouse; Esc (or Q) resumes. Built in code and styled from config/ui.cfg
+## The Esc menu: pauses the game and offers Resume, Restart, the voice and music switches, and
+## Quit. Pick with 1-5, the arrow keys and Enter, or the mouse; Esc (or Q) resumes. Built in code and styled from config/ui.cfg
 ## like the HUD. It only reports the choice; Main restarts or quits.
 
 signal restart_requested
 signal quit_requested
 
-const ROWS := ["Resume", "Restart", "Quit"]
+const ROWS := ["Resume", "Restart", "Voice", "Music", "Quit"]
 
 var is_open := false
 
@@ -36,7 +36,9 @@ func open() -> void:
 	visible = true
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_refresh_labels()
 	_buttons[0].grab_focus()
+	Sfx.play_ui("ui_move")
 
 
 func close() -> void:
@@ -47,8 +49,9 @@ func close() -> void:
 	get_tree().paused = false
 
 
-## 0 resume, 1 restart, 2 quit
+## 0 resume, 1 restart, 2 voice on/off, 3 music on/off, 4 quit
 func choose(index: int) -> void:
+	Sfx.play_ui("ui_select")
 	match index:
 		0:
 			close()
@@ -56,7 +59,23 @@ func choose(index: int) -> void:
 			close()
 			restart_requested.emit()
 		2:
+			Sfx.set_voice_enabled(not Sfx.voice_enabled)
+			_refresh_labels()
+		3:
+			Sfx.set_music_enabled(not Sfx.music_enabled)
+			_refresh_labels()
+		4:
 			quit_requested.emit()
+
+
+func _refresh_labels() -> void:
+	for i in ROWS.size():
+		var text: String = ROWS[i]
+		if text == "Voice":
+			text = "Voice   %s" % ("on" if Sfx.voice_enabled else "off")
+		elif text == "Music":
+			text = "Music   %s" % ("on" if Sfx.music_enabled else "off")
+		_buttons[i].text = "%d    %s" % [i + 1, text]
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -103,7 +122,7 @@ func _build() -> void:
 		column.add_child(button)
 		_buttons.append(button)
 	column.add_child(_spacer(8))
-	column.add_child(_label("ESC   back to the garage", _s.small, _c.dim))
+	column.add_child(_label("ESC   back to the garage      V voice   M music", _s.small, _c.dim))
 
 
 func _label(text: String, size: int, color: Color) -> Label:

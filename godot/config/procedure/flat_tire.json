@@ -37,6 +37,45 @@
 		"pattern_start": "Tighten the nuts one at a time with 1-{count}. Go across, in a star.",
 		"complete": "Car's back on the ground and the spare is torqued down. You're good to go."
 	},
+	"narration": {
+		"intro": [
+			"Night shift. One flat tire, one spare, and you. Grab a tool and let's see what you've got.",
+			"Welcome to the garage. That front left tire is flatter than my jokes. Let's fix it."
+		],
+		"mistake_openers": [
+			"Bold choice.",
+			"Well, that's one way to do it.",
+			"Interesting. Wrong, but interesting.",
+			"Ah. The scenic route.",
+			"I admire the confidence.",
+			"The car would like a word."
+		],
+		"wrong_tool_openers": [
+			"Wrong tool, chief.",
+			"That's not going to help with this.",
+			"Creative. Not effective, but creative."
+		],
+		"success_tags": [
+			"Nice.",
+			"Textbook.",
+			"Look at you go.",
+			"",
+			"",
+			""
+		],
+		"finish": {
+			"clean": [
+				"Not a single mistake. Somewhere, a tow truck driver just lost a customer."
+			],
+			"few": [
+				"Done, with only a couple of detours. The car forgives you."
+			],
+			"many": [
+				"Done. Eventually. The car has seen things tonight, but it's back on four wheels."
+			]
+		},
+		"few_mistakes_max": 2
+	},
 	"steps": [
 		{
 			"id": "loosen_nuts",

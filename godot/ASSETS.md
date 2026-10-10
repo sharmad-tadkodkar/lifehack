@@ -323,3 +323,34 @@ If the lift or shelves move, nudge `Garage/NpcWaypoints/Stop*` (the mechanic's r
 - Mixamo – https://www.mixamo.com. Clip and character names checked against the catalogue mirror at https://huggingface.co/datasets/tanish434/Mixamo-Animations-Characters
 - Godot Mixamo retarget workflow (BoneMap + SkeletonProfileHumanoid) – https://9to5grind.dev/posts/bringing-mixamo-animations-to-life-in-godot/
 - Poly Haven – https://polyhaven.com/a/garage_floor · https://polyhaven.com/a/smooth_concrete_floor · https://polyhaven.com/a/concrete_panels · https://polyhaven.com/a/factory_wall · https://polyhaven.com/a/painted_metal_shutter · https://polyhaven.com/a/box_profile_metal_sheet (all CC0)
+
+## Sound and music
+
+Everything you hear is synthesized by `tools/build_audio.gd` into `godot/assets/audio/` (no licences
+needed). Each sound is a slot in `godot/config/audio.cfg`, so a recording can replace it without code
+changes:
+
+1. Drop the file (WAV or OGG, mono is fine for effects) into `godot/assets/audio/recorded/`.
+2. Set its slot, e.g. `[sfx.ratchet] file="res://assets/audio/recorded/ratchet.ogg"`, and adjust `volume_db`.
+3. For the music: `[music] file="res://assets/audio/recorded/track.ogg"` (enable Loop in its import settings).
+
+| Slot | Plays when |
+|---|---|
+| `nut_crack`, `ratchet` | each nut is cracked loose (ratchet also on every final tightening pull) |
+| `nut_spin`, `nut_drop` | a loose nut is spun off and lands in the pile |
+| `nut_thread`, `nut_seat` | a nut is threaded on by hand / torqued down (and the spare seats) |
+| `jack_place`, `jack_pump`, `car_creak` | the jack goes under the car, each pump stroke, the body rising |
+| `valve_hiss`, `car_settle` | the release valve opens, the tyre takes the weight |
+| `wheel_slide`, `wheel_thud` | a wheel slides off/on the hub, the flat is laid down |
+| `pickup`, `putdown` | the moment a hand takes or leaves an item |
+| `good`, `bad`, `stamp`, `fanfare` | a step done, a mistake, the finish |
+| `ui_move`, `ui_select` | menus |
+| `[ambience]`, `[music]` | garage hum and the background loop |
+
+Good CC0 sources for recorded replacements: [Kenney audio packs](https://kenney.nl/assets/category:Audio)
+(Impact Sounds, Interface Sounds, Music Jingles), the [Sonniss GDC game audio bundles](https://sonniss.com/gameaudiogdc)
+(royalty-free), [OpenGameArt](https://opengameart.org) (filter by CC0) and [Freesound](https://freesound.org)
+(filter by CC0). Add a line to `CREDITS.md` for anything that asks for attribution.
+
+The narrator uses the operating system's text-to-speech voice (on macOS the first installed of Daniel, Arthur,
+Oliver, Alex, Aaron, Samantha; set in `audio.cfg [voice]`). Its lines live in the procedure JSON (`narration`).

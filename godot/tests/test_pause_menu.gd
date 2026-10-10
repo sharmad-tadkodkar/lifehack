@@ -47,7 +47,7 @@ func test_number_keys_choose() -> void:
 func test_quit_is_reported() -> void:
 	watch_signals(menu)
 	menu.open()
-	menu.choose(2)
+	menu.choose(4)
 	assert_signal_emitted(menu, "quit_requested")
 	menu.close()
 
@@ -62,3 +62,16 @@ func test_main_wires_the_menu() -> void:
 	assert_true(main.get_node("ProcedureController").play_again_requested.is_connected(main.restart),
 		"E after finishing restarts the same way")
 	main.free()
+
+
+func test_voice_and_music_switches() -> void:
+	var voice := Sfx.voice_enabled
+	var music := Sfx.music_enabled
+	menu.open()
+	menu.choose(2)
+	assert_ne(Sfx.voice_enabled, voice, "voice toggled")
+	menu.choose(3)
+	assert_ne(Sfx.music_enabled, music, "music toggled")
+	Sfx.set_voice_enabled(voice)
+	Sfx.set_music_enabled(music)
+	menu.close()
