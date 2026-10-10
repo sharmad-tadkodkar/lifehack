@@ -48,6 +48,9 @@ func _exit_tree() -> void:
 		if child is AudioStreamPlayer or child is AudioStreamPlayer3D:
 			child.stop()
 			child.stream = null
+			child.free()  # drops its playback too, so nothing holds the stream at exit
+	_music = null
+	_ambience = null
 	_streams.clear()
 
 
@@ -74,8 +77,8 @@ func play(id: String, at: Node3D = null, pitch := 1.0) -> void:
 	if played.size() > 400:
 		played = played.slice(-200)
 	var stream := stream_for(id)
-	if stream == null:
-		return
+	if stream == null or DisplayServer.get_name() == "headless":
+		return  # headless (tests) has no audio output; the log above is what tests read
 	var section := "sfx." + id
 	var jitter := float(_sfx(section, "pitch_jitter"))
 	var player: Node
@@ -142,7 +145,7 @@ func set_music_enabled(on: bool) -> void:
 	music_enabled = on
 	if on:
 		_start_music()
-	else:
+	elif _music:
 		_music.stop()
 	_save_settings()
 	settings_changed.emit()
@@ -195,7 +198,7 @@ func _loop_player(section: String, default_id: String, bus: String) -> AudioStre
 
 
 func _start_music() -> void:
-	if not music_enabled or _music.playing:
+	if not music_enabled or _music == null or _music.playing or DisplayServer.get_name() == "headless":
 		return
 	_music.volume_db = -40.0
 	_music.play()

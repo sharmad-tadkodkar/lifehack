@@ -69,7 +69,8 @@ func setup_nuts(count: int) -> void:
 		label.no_depth_test = true
 		label.fixed_size = true
 		label.pixel_size = 0.0011
-		label.font_size = 30
+		label.font = load(str(Config.v("ui", "fonts", "display")))
+		label.font_size = 26
 		label.outline_size = 10
 		label.visible = false
 		hub.add_child(label)

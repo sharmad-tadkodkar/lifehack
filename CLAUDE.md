@@ -76,7 +76,8 @@ godot/
   src/game/          main.gd (boot, graphics, debug flags), ProcedureController (model <-> world),
                      InteractionSpot (Area3D + Stand_/Cam_/Approach/Rests markers), WorkBayVisuals (state -> props),
                      ActionPlayer (per-`mechanics` sequences: character clips + prop tweens)
-  src/ui/            Hud (built in code; styled from config/ui.cfg), PauseMenu (Esc: resume/restart/quit)
+  src/ui/            Hud and PauseMenu (built in code), in an AR heads-up style: HudStyle (fonts, colours,
+                     labels, key caps, step bar from config/ui.cfg) and ArPanel (glass panel frame)
   src/npc/           NpcIdleLoop (bench phone NPC), NpcPatrol (mechanic walking NpcWaypoint stops)
   src/environment/   LightingRig (applies lighting.cfg), LightStrip, HexGrid, shaders/
   src/player/        PlayerController (CharacterBody3D), CameraDirector (follow cam + shot blends + intro)
@@ -149,4 +150,8 @@ timings), `npc`, `ui`, `input`, `assets` (model slots), `audio` (sound slots, mi
   `DisplayServer.tts_*`) reads lines chosen by `src/core/narrator.gd` from the JSON's `narration` block (intro, quip
   openers before mistake consequences, finish lines by mistake count); the music ducks while it speaks.
   `Sfx.played` / `Sfx.spoken` log what happened (tests read them; TTS is silent headless).
+- HUD look: build panels with `HudStyle.panel(tag)` (ArPanel draws its own chamfered frame, brackets and
+  scanlines) and text with `HudStyle.label()`; Michroma (`display`) for headings/values/keys, Rajdhani for
+  sentences, colours in `ui.cfg [colors]` (cyan `accent`, orange `warn` / `brand`). Eurostile Extended or
+  Microgramma are commercial; a licensed copy can be swapped in via `ui.cfg [fonts] display`.
 - snake_case files and folders, PascalCase node names, typed GDScript.

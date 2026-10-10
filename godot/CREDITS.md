@@ -17,6 +17,11 @@
   (free to use, no attribution required; credited anyway). File: `assets/audio/qubesounds-racing_fast-day-125862.mp3`.
 - Sound effects and the original music loop (`assets/audio/*.wav`) are synthesized by `tools/build_audio.gd`.
 
+## Fonts
+- Michroma by Vernon Adams (a Microgramma / Eurostile Extended style face), SIL Open Font License 1.1
+  (`assets/fonts/Michroma-OFL.txt`). From Google Fonts.
+- Rajdhani by Indian Type Foundry, SIL Open Font License 1.1 (`assets/fonts/Rajdhani-OFL.txt`). From Google Fonts.
+
 ## Textures
 - "Garage Floor" from Poly Haven (https://polyhaven.com/a/garage_floor), CC0.
 
