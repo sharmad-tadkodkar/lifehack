@@ -1,0 +1,99 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/game/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/environment/garage.tscn" id="2_garage"]
+[ext_resource type="PackedScene" path="res://scenes/props/car.tscn" id="3_car"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="4_player"]
+[ext_resource type="Script" path="res://src/player/camera_director.gd" id="5_camera_director"]
+[ext_resource type="PackedScene" path="res://scenes/props/tool_cart.tscn" id="6_tool_cart"]
+[ext_resource type="PackedScene" path="res://scenes/props/lug_wrench.tscn" id="7_lug_wrench"]
+[ext_resource type="PackedScene" path="res://scenes/props/jack.tscn" id="8_jack"]
+[ext_resource type="PackedScene" path="res://scenes/props/wheel.tscn" id="9_wheel"]
+[ext_resource type="Script" path="res://src/game/work_bay_visuals.gd" id="10_work_bay_visuals"]
+[ext_resource type="Script" path="res://src/game/procedure_controller.gd" id="11_procedure_controller"]
+[ext_resource type="Script" path="res://src/game/action_player.gd" id="12_action_player"]
+[ext_resource type="Script" path="res://src/ui/hud.gd" id="13_hud"]
+[ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="14_pause_menu"]
+
+[node name="Main" type="Node"]
+script = ExtResource("1_main")
+
+[node name="Garage" parent="." instance=ExtResource("2_garage")]
+
+[node name="WorkBay" type="Node3D" parent="."]
+
+[node name="Car" parent="WorkBay" instance=ExtResource("3_car")]
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="ToolCart" parent="WorkBay" instance=ExtResource("6_tool_cart")]
+position = Vector3(-4.3, 0, 1)
+
+[node name="Items" type="Node3D" parent="WorkBay" node_paths=PackedStringArray("car", "player", "lug_wrench", "jack", "spare", "action_player")]
+script = ExtResource("10_work_bay_visuals")
+action_player = NodePath("../../ActionPlayer")
+car = NodePath("../Car")
+player = NodePath("../../Player")
+lug_wrench = NodePath("LugWrench")
+jack = NodePath("Jack")
+spare = NodePath("Spare")
+
+[node name="LugWrench" parent="WorkBay/Items" instance=ExtResource("7_lug_wrench")]
+
+[node name="Jack" parent="WorkBay/Items" instance=ExtResource("8_jack")]
+
+[node name="Spare" parent="WorkBay/Items" instance=ExtResource("9_wheel")]
+
+[node name="Player" parent="." node_paths=PackedStringArray("camera_director") instance=ExtResource("4_player")]
+position = Vector3(-3.6, 0, 4.2)
+camera_director = NodePath("../CameraDirector")
+
+[node name="CameraDirector" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("5_camera_director")
+target = NodePath("../Player")
+
+[node name="Yaw" type="Node3D" parent="CameraDirector"]
+
+[node name="Pitch" type="Node3D" parent="CameraDirector/Yaw"]
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraDirector/Yaw/Pitch"]
+
+[node name="Anchor" type="Node3D" parent="CameraDirector/Yaw/Pitch/SpringArm3D"]
+
+[node name="Camera3D" type="Camera3D" parent="CameraDirector"]
+current = true
+
+[node name="ProcedureController" type="Node" parent="." node_paths=PackedStringArray("player", "director", "visuals", "hud", "outro_shot")]
+script = ExtResource("11_procedure_controller")
+player = NodePath("../Player")
+director = NodePath("../CameraDirector")
+visuals = NodePath("../WorkBay/Items")
+hud = NodePath("../Hud")
+outro_shot = NodePath("../Shots/Outro")
+
+[node name="ActionPlayer" type="Node" parent="." node_paths=PackedStringArray("visuals", "player")]
+script = ExtResource("12_action_player")
+visuals = NodePath("../WorkBay/Items")
+player = NodePath("../Player")
+
+[node name="Hud" type="CanvasLayer" parent="."]
+script = ExtResource("13_hud")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+script = ExtResource("14_pause_menu")
+
+[node name="Shots" type="Node3D" parent="."]
+
+[node name="IntroStart" type="Camera3D" parent="Shots"]
+position = Vector3(6.2, 0.3, 7.8)
+rotation = Vector3(0.0241547, 0.717012, 0)
+fov = 40
+
+[node name="IntroEnd" type="Camera3D" parent="Shots"]
+position = Vector3(-7.4, 2.5, 8.4)
+rotation = Vector3(-0.159904, -0.632749, 0)
+fov = 46
+
+[node name="Outro" type="Camera3D" parent="Shots"]
+position = Vector3(-4.6, 0.55, 3.9)
+rotation = Vector3(0.0222265, -0.879853, 0)
+fov = 44

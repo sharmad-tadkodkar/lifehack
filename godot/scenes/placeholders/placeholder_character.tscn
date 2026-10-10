@@ -1,0 +1,210 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/slots/placeholder_character.gd" id="1_placeholder_character"]
+[ext_resource type="AnimationLibrary" path="res://scenes/placeholders/placeholder_character_anims.tres" id="2_placeholder_character_anims"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.07, 0.1, 0.17, 1)
+roughness = 0.82
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.5, 0.47, 0.45, 1)
+roughness = 0.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3"]
+albedo_color = Color(0.9, 0.24, 0.09, 1)
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
+albedo_color = Color(0.04, 0.04, 0.045, 1)
+roughness = 0.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5"]
+albedo_color = Color(0.02, 0.02, 0.025, 1)
+metallic = 0.3
+roughness = 0.15
+
+[sub_resource type="BoxMesh" id="BoxMesh_6"]
+material = SubResource("StandardMaterial3D_1")
+size = Vector3(0.32, 0.16, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7"]
+material = SubResource("StandardMaterial3D_1")
+size = Vector3(0.38, 0.5, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8"]
+material = SubResource("StandardMaterial3D_4")
+size = Vector3(0.385, 0.05, 0.225)
+
+[sub_resource type="SphereMesh" id="SphereMesh_9"]
+material = SubResource("StandardMaterial3D_2")
+radius = 0.115
+height = 0.23
+radial_segments = 24
+rings = 12
+
+[sub_resource type="BoxMesh" id="BoxMesh_10"]
+material = SubResource("StandardMaterial3D_5")
+size = Vector3(0.17, 0.05, 0.02)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_11"]
+material = SubResource("StandardMaterial3D_1")
+radius = 0.048
+height = 0.32
+radial_segments = 16
+rings = 4
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_12"]
+material = SubResource("StandardMaterial3D_1")
+radius = 0.042
+height = 0.29
+radial_segments = 16
+rings = 4
+
+[sub_resource type="BoxMesh" id="BoxMesh_13"]
+material = SubResource("StandardMaterial3D_3")
+size = Vector3(0.07, 0.1, 0.045)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_14"]
+material = SubResource("StandardMaterial3D_1")
+radius = 0.065
+height = 0.46
+radial_segments = 16
+rings = 4
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_15"]
+material = SubResource("StandardMaterial3D_1")
+radius = 0.055
+height = 0.44
+radial_segments = 16
+rings = 4
+
+[sub_resource type="BoxMesh" id="BoxMesh_16"]
+material = SubResource("StandardMaterial3D_4")
+size = Vector3(0.1, 0.08, 0.25)
+
+[node name="PlaceholderCharacter" type="Node3D"]
+script = ExtResource("1_placeholder_character")
+label = "character"
+label_height = 2.05
+
+[node name="Hips" type="Node3D" parent="."]
+position = Vector3(0, 0.95, 0)
+
+[node name="Pelvis" type="MeshInstance3D" parent="Hips"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("BoxMesh_6")
+
+[node name="Spine" type="Node3D" parent="Hips"]
+position = Vector3(0, 0.08, 0)
+
+[node name="Torso" type="MeshInstance3D" parent="Hips/Spine"]
+position = Vector3(0, 0.27, 0)
+mesh = SubResource("BoxMesh_7")
+
+[node name="Belt" type="MeshInstance3D" parent="Hips/Spine"]
+position = Vector3(0, 0.03, 0)
+mesh = SubResource("BoxMesh_8")
+
+[node name="Neck" type="Node3D" parent="Hips/Spine"]
+position = Vector3(0, 0.54, 0)
+
+[node name="Head" type="MeshInstance3D" parent="Hips/Spine/Neck"]
+position = Vector3(0, 0.12, 0)
+mesh = SubResource("SphereMesh_9")
+
+[node name="Visor" type="MeshInstance3D" parent="Hips/Spine/Neck"]
+position = Vector3(0, 0.14, -0.105)
+mesh = SubResource("BoxMesh_10")
+
+[node name="ShoulderL" type="Node3D" parent="Hips/Spine"]
+position = Vector3(-0.235, 0.47, 0)
+
+[node name="UpperArm" type="MeshInstance3D" parent="Hips/Spine/ShoulderL"]
+position = Vector3(0, -0.15, 0)
+mesh = SubResource("CapsuleMesh_11")
+
+[node name="ElbowL" type="Node3D" parent="Hips/Spine/ShoulderL"]
+position = Vector3(0, -0.29, 0)
+
+[node name="Forearm" type="MeshInstance3D" parent="Hips/Spine/ShoulderL/ElbowL"]
+position = Vector3(0, -0.13, 0)
+mesh = SubResource("CapsuleMesh_12")
+
+[node name="HandL" type="Node3D" parent="Hips/Spine/ShoulderL/ElbowL"]
+position = Vector3(0, -0.27, 0)
+
+[node name="Glove" type="MeshInstance3D" parent="Hips/Spine/ShoulderL/ElbowL/HandL"]
+position = Vector3(0, -0.05, 0)
+mesh = SubResource("BoxMesh_13")
+
+[node name="HipL" type="Node3D" parent="Hips"]
+position = Vector3(-0.1, -0.06, 0)
+
+[node name="Thigh" type="MeshInstance3D" parent="Hips/HipL"]
+position = Vector3(0, -0.21, 0)
+mesh = SubResource("CapsuleMesh_14")
+
+[node name="KneeL" type="Node3D" parent="Hips/HipL"]
+position = Vector3(0, -0.43, 0)
+
+[node name="Shin" type="MeshInstance3D" parent="Hips/HipL/KneeL"]
+position = Vector3(0, -0.2, 0)
+mesh = SubResource("CapsuleMesh_15")
+
+[node name="AnkleL" type="Node3D" parent="Hips/HipL/KneeL"]
+position = Vector3(0, -0.42, 0)
+
+[node name="Boot" type="MeshInstance3D" parent="Hips/HipL/KneeL/AnkleL"]
+position = Vector3(0, -0, -0.06)
+mesh = SubResource("BoxMesh_16")
+
+[node name="ShoulderR" type="Node3D" parent="Hips/Spine"]
+position = Vector3(0.235, 0.47, 0)
+
+[node name="UpperArm" type="MeshInstance3D" parent="Hips/Spine/ShoulderR"]
+position = Vector3(0, -0.15, 0)
+mesh = SubResource("CapsuleMesh_11")
+
+[node name="ElbowR" type="Node3D" parent="Hips/Spine/ShoulderR"]
+position = Vector3(0, -0.29, 0)
+
+[node name="Forearm" type="MeshInstance3D" parent="Hips/Spine/ShoulderR/ElbowR"]
+position = Vector3(0, -0.13, 0)
+mesh = SubResource("CapsuleMesh_12")
+
+[node name="HandR" type="Node3D" parent="Hips/Spine/ShoulderR/ElbowR"]
+position = Vector3(0, -0.27, 0)
+
+[node name="Glove" type="MeshInstance3D" parent="Hips/Spine/ShoulderR/ElbowR/HandR"]
+position = Vector3(0, -0.05, 0)
+mesh = SubResource("BoxMesh_13")
+
+[node name="HandSocket" type="Marker3D" parent="Hips/Spine/ShoulderR/ElbowR/HandR"]
+position = Vector3(0, -0.07, 0)
+
+[node name="HipR" type="Node3D" parent="Hips"]
+position = Vector3(0.1, -0.06, 0)
+
+[node name="Thigh" type="MeshInstance3D" parent="Hips/HipR"]
+position = Vector3(0, -0.21, 0)
+mesh = SubResource("CapsuleMesh_14")
+
+[node name="KneeR" type="Node3D" parent="Hips/HipR"]
+position = Vector3(0, -0.43, 0)
+
+[node name="Shin" type="MeshInstance3D" parent="Hips/HipR/KneeR"]
+position = Vector3(0, -0.2, 0)
+mesh = SubResource("CapsuleMesh_15")
+
+[node name="AnkleR" type="Node3D" parent="Hips/HipR/KneeR"]
+position = Vector3(0, -0.42, 0)
+
+[node name="Boot" type="MeshInstance3D" parent="Hips/HipR/KneeR/AnkleR"]
+position = Vector3(0, -0, -0.06)
+mesh = SubResource("BoxMesh_16")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": ExtResource("2_placeholder_character_anims")
+}

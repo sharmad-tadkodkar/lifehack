@@ -1,0 +1,11 @@
+Model Information:
+* title:	Lug Wrench (Cross Wheel Spanner)
+* source:	https://sketchfab.com/3d-models/lug-wrench-cross-wheel-spanner-2c135201029744d98680ec7c086baedb
+* author:	dinoxwave (https://sketchfab.com/dinoxwave)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Lug Wrench (Cross Wheel Spanner)" (https://sketchfab.com/3d-models/lug-wrench-cross-wheel-spanner-2c135201029744d98680ec7c086baedb) by dinoxwave (https://sketchfab.com/dinoxwave) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

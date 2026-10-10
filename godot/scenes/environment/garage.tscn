@@ -1,0 +1,367 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/environment/lighting_rig.gd" id="1_lighting_rig"]
+[ext_resource type="Script" path="res://src/environment/hex_grid.gd" id="2_hex_grid"]
+[ext_resource type="Script" path="res://src/environment/light_strip.gd" id="3_light_strip"]
+[ext_resource type="Shader" path="res://src/environment/shaders/garage_floor.gdshader" id="4_garage_floor"]
+[ext_resource type="Shader" path="res://src/environment/shaders/corrugated_metal.gdshader" id="5_corrugated_metal"]
+[ext_resource type="PackedScene" path="res://scenes/placeholders/placeholder_garage_props.tscn" id="6_placeholder_garage_props"]
+[ext_resource type="PackedScene" path="res://scenes/props/car.tscn" id="7_car"]
+[ext_resource type="PackedScene" path="res://scenes/characters/npc_phone.tscn" id="8_npc_phone"]
+[ext_resource type="PackedScene" path="res://scenes/characters/npc_mechanic.tscn" id="9_npc_mechanic"]
+[ext_resource type="Script" path="res://src/npc/npc_waypoint.gd" id="10_npc_waypoint"]
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.004, 0.005, 0.008, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_2"]
+frequency = 0.08
+fractal_octaves = 4
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_3"]
+width = 512
+height = 512
+seamless = true
+as_normal_map = true
+bump_strength = 3.0
+noise = SubResource("FastNoiseLite_2")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
+albedo_color = Color(0.12, 0.122, 0.125, 1)
+roughness = 0.88
+normal_enabled = true
+normal_scale = 0.4
+normal_texture = SubResource("NoiseTexture2D_3")
+uv1_triplanar = true
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5"]
+albedo_color = Color(0.04, 0.04, 0.045, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6"]
+albedo_color = Color(0.05, 0.05, 0.055, 1)
+metallic = 0.7
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7"]
+albedo_color = Color(0.85, 0.6, 0.04, 1)
+roughness = 0.45
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8"]
+albedo_color = Color(0.025, 0.026, 0.028, 1)
+roughness = 0.12
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_9"]
+shader = ExtResource("4_garage_floor")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_10"]
+shader = ExtResource("5_corrugated_metal")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_11"]
+size = Vector2(18, 22)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_12"]
+size = Vector3(18, 0.2, 22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_13"]
+material = SubResource("StandardMaterial3D_6")
+size = Vector3(18, 0.32, 0.18)
+
+[sub_resource type="BoxMesh" id="BoxMesh_14"]
+size = Vector3(5, 3.2, 0.06)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_15"]
+size = Vector3(5, 1, 0.4)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_16"]
+material = SubResource("StandardMaterial3D_8")
+size = Vector2(24, 14)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_17"]
+material = SubResource("StandardMaterial3D_7")
+size = Vector2(6.6, 0.1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_18"]
+material = SubResource("StandardMaterial3D_7")
+size = Vector2(0.1, 4.6)
+
+[node name="Garage" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="Shell" type="Node3D" parent="."]
+
+[node name="Floor" type="MeshInstance3D" parent="Shell"]
+mesh = SubResource("PlaneMesh_11")
+surface_material_override/0 = SubResource("ShaderMaterial_9")
+
+[node name="FloorCollision" type="StaticBody3D" parent="Shell"]
+position = Vector3(0, -0.1, 0)
+
+[node name="Shape" type="CollisionShape3D" parent="Shell/FloorCollision"]
+shape = SubResource("BoxShape3D_12")
+
+[node name="Walls" type="CSGCombiner3D" parent="Shell"]
+use_collision = true
+
+[node name="LeftWall" type="CSGBox3D" parent="Shell/Walls"]
+position = Vector3(-9, 2.75, 0)
+size = Vector3(0.3, 5.5, 22.6)
+material = SubResource("StandardMaterial3D_4")
+
+[node name="RightWall" type="CSGBox3D" parent="Shell/Walls"]
+position = Vector3(9, 2.75, 0)
+size = Vector3(0.3, 5.5, 22.6)
+material = SubResource("StandardMaterial3D_4")
+
+[node name="FrontWall" type="CSGBox3D" parent="Shell/Walls"]
+position = Vector3(0, 2.75, 11.15)
+size = Vector3(18.3, 5.5, 0.3)
+material = SubResource("StandardMaterial3D_4")
+
+[node name="BackWall" type="CSGBox3D" parent="Shell/Walls"]
+position = Vector3(0, 2.75, -11.15)
+size = Vector3(18.3, 5.5, 0.3)
+material = SubResource("StandardMaterial3D_4")
+
+[node name="Ceiling" type="CSGBox3D" parent="Shell/Walls"]
+position = Vector3(0, 5.65, 0)
+size = Vector3(18.3, 0.3, 22.6)
+material = SubResource("StandardMaterial3D_5")
+
+[node name="DoorOpening" type="CSGBox3D" parent="Shell/Walls"]
+position = Vector3(4, 2.1, -11.15)
+operation = 2
+size = Vector3(5, 4.2, 0.6)
+
+[node name="Beam1" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0, 5.34, -9)
+mesh = SubResource("BoxMesh_13")
+
+[node name="Beam2" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0, 5.34, -3)
+mesh = SubResource("BoxMesh_13")
+
+[node name="Beam3" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0, 5.34, 3)
+mesh = SubResource("BoxMesh_13")
+
+[node name="Beam4" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0, 5.34, 9)
+mesh = SubResource("BoxMesh_13")
+
+[node name="RollerDoor" type="MeshInstance3D" parent="Shell"]
+position = Vector3(4, 2.6, -11.05)
+mesh = SubResource("BoxMesh_14")
+surface_material_override/0 = SubResource("ShaderMaterial_10")
+
+[node name="DoorGapBlocker" type="StaticBody3D" parent="Shell"]
+position = Vector3(4, 0.5, -11.15)
+
+[node name="Shape" type="CollisionShape3D" parent="Shell/DoorGapBlocker"]
+shape = SubResource("BoxShape3D_15")
+
+[node name="StreetGround" type="MeshInstance3D" parent="Shell"]
+position = Vector3(4, 0, -18.3)
+mesh = SubResource("PlaneMesh_16")
+
+[node name="BayLineFront" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0, 0.004, 2.25)
+mesh = SubResource("PlaneMesh_17")
+
+[node name="BayLineBack" type="MeshInstance3D" parent="Shell"]
+position = Vector3(0, 0.004, -2.25)
+mesh = SubResource("PlaneMesh_17")
+
+[node name="BayLineLeft" type="MeshInstance3D" parent="Shell"]
+position = Vector3(-3.3, 0.004, 0)
+mesh = SubResource("PlaneMesh_18")
+
+[node name="BayLineRight" type="MeshInstance3D" parent="Shell"]
+position = Vector3(3.3, 0.004, 0)
+mesh = SubResource("PlaneMesh_18")
+
+[node name="Lighting" type="Node3D" parent="." node_paths=PackedStringArray("world_environment", "hex_grid", "floor_mesh", "search_root")]
+script = ExtResource("1_lighting_rig")
+world_environment = NodePath("../WorldEnvironment")
+hex_grid = NodePath("HexGrid")
+floor_mesh = NodePath("../Shell/Floor")
+search_root = NodePath("..")
+
+[node name="HexGrid" type="Node3D" parent="Lighting"]
+position = Vector3(0, 5, 0)
+script = ExtResource("2_hex_grid")
+
+[node name="BayArea" type="AreaLight3D" parent="Lighting"]
+position = Vector3(0, 4.95, 0)
+rotation = Vector3(-1.5708, 0, 0)
+area_size = Vector2(8.4, 5)
+
+[node name="CeilStrip1" type="Node3D" parent="Lighting"]
+position = Vector3(-3, 5.1, -6.5)
+rotation = Vector3(0, 0, 0)
+script = ExtResource("3_light_strip")
+group = "ceiling"
+length = 3.6
+width = 0.06
+
+[node name="CeilStrip2" type="Node3D" parent="Lighting"]
+position = Vector3(3, 5.1, -6.5)
+rotation = Vector3(0, 0, 0)
+script = ExtResource("3_light_strip")
+group = "ceiling"
+length = 3.6
+width = 0.06
+
+[node name="CeilStrip3" type="Node3D" parent="Lighting"]
+position = Vector3(-3, 5.1, 6.5)
+rotation = Vector3(0, 0, 0)
+script = ExtResource("3_light_strip")
+group = "ceiling"
+length = 3.6
+width = 0.06
+
+[node name="CeilStrip4" type="Node3D" parent="Lighting"]
+position = Vector3(3, 5.1, 6.5)
+rotation = Vector3(0, 0, 0)
+script = ExtResource("3_light_strip")
+group = "ceiling"
+length = 3.6
+width = 0.06
+
+[node name="CeilStrip5" type="Node3D" parent="Lighting"]
+position = Vector3(-6.8, 5.1, 0)
+rotation = Vector3(0, 1.5708, 0)
+script = ExtResource("3_light_strip")
+group = "ceiling"
+length = 4
+width = 0.06
+
+[node name="CeilStrip6" type="Node3D" parent="Lighting"]
+position = Vector3(6.8, 5.1, 0)
+rotation = Vector3(0, 1.5708, 0)
+script = ExtResource("3_light_strip")
+group = "ceiling"
+length = 4
+width = 0.06
+
+[node name="MagentaStrip" type="Node3D" parent="Lighting"]
+position = Vector3(-4.6, 4.7, -10.95)
+rotation = Vector3(-1.5708, 0, 0)
+script = ExtResource("3_light_strip")
+group = "magenta"
+length = 8
+width = 0.05
+
+[node name="CyanStripLeft" type="Node3D" parent="Lighting"]
+position = Vector3(-8.75, 4.9, 0)
+rotation = Vector3(0, 1.5708, 0)
+script = ExtResource("3_light_strip")
+group = "cyan"
+length = 18
+width = 0.05
+
+[node name="EmberStripRight" type="Node3D" parent="Lighting"]
+position = Vector3(8.78, 0.06, 0)
+rotation = Vector3(3.14159, 1.5708, 0)
+script = ExtResource("3_light_strip")
+group = "ember"
+length = 18
+width = 0.04
+
+[node name="EmberStripBench" type="Node3D" parent="Lighting"]
+position = Vector3(-8.08, 0.84, -1.5)
+rotation = Vector3(0, 1.5708, 0)
+script = ExtResource("3_light_strip")
+group = "ember"
+length = 2.8
+width = 0.03
+
+[node name="BenchLamp" type="SpotLight3D" parent="Lighting"]
+position = Vector3(-8.3, 2.3, -1.5)
+rotation = Vector3(-1.5708, 0, 0)
+
+[node name="DoorSpill" type="SpotLight3D" parent="Lighting"]
+position = Vector3(4, 3, -15)
+rotation = Vector3(-0.356, 3.017, 0)
+
+[node name="RimLight" type="SpotLight3D" parent="Lighting"]
+position = Vector3(0, 3.6, -4.2)
+rotation = Vector3(-0.558, 3.14159, 0)
+
+[node name="SignText" type="Label3D" parent="Lighting"]
+position = Vector3(-4.6, 3, -10.98)
+pixel_size = 0.004
+text = "OH S#IT"
+font_size = 256
+outline_size = 28
+shaded = false
+
+[node name="SignSubText" type="Label3D" parent="Lighting"]
+position = Vector3(-4.6, 2.15, -10.98)
+pixel_size = 0.004
+text = "LIFE SKILLS GARAGE"
+font_size = 80
+outline_size = 14
+shaded = false
+
+[node name="SignGlow" type="OmniLight3D" parent="Lighting"]
+position = Vector3(-4.6, 2.7, -10.2)
+
+[node name="ReflectionProbe" type="ReflectionProbe" parent="Lighting"]
+position = Vector3(0, 2.75, 0)
+size = Vector3(17.7, 5.5, 22)
+
+[node name="Props" parent="." instance=ExtResource("6_placeholder_garage_props")]
+
+[node name="LiftCar" parent="." instance=ExtResource("7_car")]
+position = Vector3(0, 1, -6.5)
+rotation = Vector3(0, 1.5708, 0)
+slot = "car_background"
+interactive = false
+placeholder_paint = Color(0.03, 0.08, 0.09, 1)
+
+[node name="NpcWaypoints" type="Node3D" parent="."]
+
+[node name="Stop1" type="Marker3D" parent="NpcWaypoints"]
+position = Vector3(-2.4, 0, -5)
+rotation = Vector3(0, -0.694738, 0)
+script = ExtResource("10_npc_waypoint")
+task = "work_overhead"
+
+[node name="Stop2" type="Marker3D" parent="NpcWaypoints"]
+position = Vector3(1.2, 0, -4.2)
+rotation = Vector3(0, 0.141897, 0)
+script = ExtResource("10_npc_waypoint")
+task = "inspect"
+
+[node name="Stop3" type="Marker3D" parent="NpcWaypoints"]
+position = Vector3(2.9, 0, -6.6)
+rotation = Vector3(0, 1.5708, 0)
+script = ExtResource("10_npc_waypoint")
+task = "work_overhead"
+
+[node name="Stop4" type="Marker3D" parent="NpcWaypoints"]
+position = Vector3(5.4, 0, -3)
+rotation = Vector3(0, 2.53087, 0)
+script = ExtResource("10_npc_waypoint")
+task = "look_around"
+
+[node name="Stop5" type="Marker3D" parent="NpcWaypoints"]
+position = Vector3(7.6, 0, -1.6)
+rotation = Vector3(0, -1.5708, 0)
+script = ExtResource("10_npc_waypoint")
+task = "browse_shelf"
+
+[node name="NPCs" type="Node3D" parent="."]
+
+[node name="NpcPhone" parent="NPCs" instance=ExtResource("8_npc_phone")]
+position = Vector3(-7.78, 0, -2.3)
+rotation = Vector3(0, -1.3208, 0)
+
+[node name="NpcMechanic" parent="NPCs" node_paths=PackedStringArray("waypoints") instance=ExtResource("9_npc_mechanic")]
+position = Vector3(4, 0, -4)
+waypoints = NodePath("../../NpcWaypoints")

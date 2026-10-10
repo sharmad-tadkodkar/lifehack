@@ -1,0 +1,87 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/slots/placeholder_marker.gd" id="1_marker"]
+
+[sub_resource type="StandardMaterial3D" id="Rubber"]
+albedo_color = Color(0.025, 0.025, 0.028, 1)
+roughness = 0.82
+
+[sub_resource type="StandardMaterial3D" id="Alloy"]
+albedo_color = Color(0.55, 0.56, 0.58, 1)
+metallic = 1.0
+roughness = 0.22
+
+[sub_resource type="StandardMaterial3D" id="DarkAlloy"]
+albedo_color = Color(0.08, 0.08, 0.09, 1)
+metallic = 0.9
+roughness = 0.35
+
+[sub_resource type="CylinderMesh" id="TireMesh"]
+material = SubResource("Rubber")
+top_radius = 0.32
+bottom_radius = 0.32
+height = 0.21
+radial_segments = 48
+rings = 1
+
+[sub_resource type="CylinderMesh" id="RimMesh"]
+material = SubResource("DarkAlloy")
+top_radius = 0.215
+bottom_radius = 0.215
+height = 0.214
+radial_segments = 40
+rings = 1
+
+[sub_resource type="CylinderMesh" id="HubMesh"]
+material = SubResource("Alloy")
+top_radius = 0.075
+bottom_radius = 0.08
+height = 0.03
+radial_segments = 24
+rings = 1
+
+[sub_resource type="BoxMesh" id="SpokeMesh"]
+material = SubResource("Alloy")
+size = Vector3(0.025, 0.15, 0.045)
+
+[node name="PlaceholderWheel" type="Node3D"]
+script = ExtResource("1_marker")
+label = "wheel"
+label_height = 0.6
+
+[node name="Tire" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("TireMesh")
+
+[node name="Rim" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("RimMesh")
+
+[node name="Hub" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.105, 0, 0)
+mesh = SubResource("HubMesh")
+
+[node name="Spoke1" type="MeshInstance3D" parent="."]
+position = Vector3(0.1, 0.13000, 0.00000)
+rotation = Vector3(0.00000, 0, 0)
+mesh = SubResource("SpokeMesh")
+
+[node name="Spoke2" type="MeshInstance3D" parent="."]
+position = Vector3(0.1, 0.04017, 0.12364)
+rotation = Vector3(1.25664, 0, 0)
+mesh = SubResource("SpokeMesh")
+
+[node name="Spoke3" type="MeshInstance3D" parent="."]
+position = Vector3(0.1, -0.10517, 0.07641)
+rotation = Vector3(2.51327, 0, 0)
+mesh = SubResource("SpokeMesh")
+
+[node name="Spoke4" type="MeshInstance3D" parent="."]
+position = Vector3(0.1, -0.10517, -0.07641)
+rotation = Vector3(3.76991, 0, 0)
+mesh = SubResource("SpokeMesh")
+
+[node name="Spoke5" type="MeshInstance3D" parent="."]
+position = Vector3(0.1, 0.04017, -0.12364)
+rotation = Vector3(5.02655, 0, 0)
+mesh = SubResource("SpokeMesh")

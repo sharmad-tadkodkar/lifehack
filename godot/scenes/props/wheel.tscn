@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/slots/item_rig.gd" id="1_item_rig"]
+[ext_resource type="PackedScene" path="res://scenes/placeholders/placeholder_wheel.tscn" id="2_placeholder_wheel"]
+
+[node name="Wheel" type="Node3D"]
+script = ExtResource("1_item_rig")
+slot = "wheel"
+
+[node name="Model" parent="." instance=ExtResource("2_placeholder_wheel")]
+
+[node name="Grip" type="Marker3D" parent="."]
+position = Vector3(-0.07, 0.31, 0)
+rotation = Vector3(0.57497, 1.76889, 2.34077)
