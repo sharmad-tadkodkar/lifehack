@@ -57,7 +57,7 @@ func test_work_clips_come_from_mixamo() -> void:
 		"kneel_down": "kneeling_down/mixamo_com",
 		"kneel_idle": "kneeling_idle/mixamo_com",
 		"wrench_loosen": "kneeling_inspecting/mixamo_com",
-		"pump_jack": "pulling_lever/mixamo_com",
+		"pump_jack": "working_on_device/mixamo_com",
 		"pull_wheel": "pull_heavy_object/mixamo_com",
 		"fit_wheel": "pushing/mixamo_com",
 		"pick_up": "picking_up/mixamo_com",

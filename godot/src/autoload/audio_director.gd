@@ -45,9 +45,9 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	stop_voice()
 	for child in get_children():
-		if child is AudioStreamPlayer:
-			(child as AudioStreamPlayer).stop()
-			(child as AudioStreamPlayer).stream = null
+		if child is AudioStreamPlayer or child is AudioStreamPlayer3D:
+			child.stop()
+			child.stream = null
 	_streams.clear()
 
 
@@ -87,11 +87,7 @@ func play(id: String, at: Node3D = null, pitch := 1.0) -> void:
 		p3.volume_db = float(_sfx(section, "volume_db"))
 		p3.pitch_scale = pitch * (1.0 + randf_range(-jitter, jitter))
 		p3.bus = &"SFX"
-		var scene := at.get_tree().current_scene
-		if scene:
-			scene.add_child(p3)
-		else:
-			add_child(p3)
+		add_child(p3)  # under this plain Node, so global_position is simply its position
 		p3.global_position = at.global_position
 		player = p3
 	else:

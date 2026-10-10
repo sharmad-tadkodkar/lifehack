@@ -92,8 +92,8 @@ func _raise_car() -> void:
 	await _tween_method(func(t: float) -> void:
 		visuals.attach_global(jack, start.interpolate_with(under, t)), 0.0, 1.0, _m.jack_roll_time)
 	Sfx.play("jack_place", jack)
-	await _stand(_clip(2))
-	player.rig.play(_clip(3))
+	# stays down at the jack and pumps, then stands
+	player.rig.play(_clip(2))
 	var strokes := int(_m.jack_pump_strokes)
 	var stroke := float(_m.jack_stroke_time)
 	for k in strokes:
@@ -106,7 +106,7 @@ func _raise_car() -> void:
 			jack.set_pump(1.0 - t)
 			car().set_raise(lerpf(from, to, t))
 			jack.set_lift(lerpf(from, to, t)), 0.0, 1.0, stroke * 0.5)
-	player.rig.play("idle")
+	await _stand(_clip(3))
 
 
 func _remove_wheel() -> void:
