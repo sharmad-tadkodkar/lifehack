@@ -35,6 +35,9 @@ func test_music_and_ambience_loop() -> void:
 		if stream is AudioStreamWAV:
 			assert_eq((stream as AudioStreamWAV).loop_mode, AudioStreamWAV.LOOP_FORWARD, id + " loops")
 	assert_gt(Sfx.stream_for("music_loop").get_length(), 10.0, "music is a real loop, not a jingle")
+	var music := Sfx.stream_for("music_loop")
+	if "loop" in music:
+		assert_true(music.get("loop"), "the music track loops")
 
 
 func test_buses_exist() -> void:

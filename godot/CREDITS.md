@@ -12,6 +12,11 @@
 ## Characters and animations
 - Characters and animation clips from Mixamo (https://www.mixamo.com), Adobe. Royalty-free for use in games; no attribution required.
 
+## Music
+- "Racing Fast (Day)" by Qube Sounds (qubesounds), from Pixabay (track 125862), under the Pixabay Content License
+  (free to use, no attribution required; credited anyway). File: `assets/audio/qubesounds-racing_fast-day-125862.mp3`.
+- Sound effects and the original music loop (`assets/audio/*.wav`) are synthesized by `tools/build_audio.gd`.
+
 ## Textures
 - "Garage Floor" from Poly Haven (https://polyhaven.com/a/garage_floor), CC0.
 
